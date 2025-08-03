@@ -1,0 +1,37 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+enum EmailStatus {
+  IS_PENDING
+  SEND
+  ERROR
+}
+
+enum Services {
+  NODEJS_MAILER
+}
+
+
+model email {
+  id                  Int                @id @default(autoincrement())
+  createdAt           DateTime           @default(now())
+  sendAt              DateTime?          
+  receivers           Json
+  sender              String              @db.VarChar(150)
+  subject             String              @db.VarChar(150)
+  templatePath        String
+  templateVariables   Json?
+  cc                  Json?            
+  bcc                 Json?             
+  gatewayEmailId      Int?              
+  status EmailStatus
+  services Services
+}
+
+
+

@@ -1,0 +1,32 @@
+services:
+
+  # mysql:
+  #   image: mysql:9
+  #   restart: always
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: root123+
+  #   volumes:
+  #     - mysql_data:/var/lib/mysql
+  #   ports:
+  #     - '3362:3306'
+  #   healthcheck:
+  #     test: ['CMD', 'mysqladmin', 'ping', '-h', '127.0.0.1', '-proot123+']
+  #     interval: 5s
+  #     timeout: 5s
+  #     start_period: 5s
+  #     retries: 5
+
+  # phpmyadmin:
+  #   image: phpmyadmin:5
+  #   container_name: phpmyadmin
+  #   restart: always
+  #   environment:
+  #     PMA_HOST: mysql
+  #     PMA_PORT: 3306
+  #   ports:
+  #     - '8082:80'
+  #   depends_on:
+  #     - mysql
+
+volumes:
+  mysql_data:
