@@ -18,8 +18,8 @@ async function bootstrap() {
       options: {
         inheritAppConfig: true,
         servers: [process.env.NATS_URL],
-        
-        queue: 'email-service', 
+
+        queue: 'email-service',
         maxReconnectAttempts: 10,
         reconnectTimeWait: 1000,
         debug: true,

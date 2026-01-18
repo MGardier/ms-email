@@ -4,11 +4,10 @@ import { EmailController } from './email.controller';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 import { env } from 'process';
-import { PrismaService } from 'prisma/prisma.service';
 import { join } from 'path';
-import { ConfigService } from '@nestjs/config';
 import { EmailRepository } from './email.repository';
 import { TemplateModule } from 'src/template/template.module';
+import { PrismaModule } from 'prisma/prisma.module';
 
 @Module({
   imports: [
@@ -31,22 +30,20 @@ import { TemplateModule } from 'src/template/template.module';
               ? 'dist/template'
               : 'src/template',
           ),
-
           adapter: new HandlebarsAdapter(),
           options: {
             strict: false,
           },
         },
         defaults: {
-          from: `No Reply <${env.MAIL_FROM}>`,
+          from: `No Reply <${env.MAILER_SENDER}>`,
         },
-        inject: [ConfigService],
       }),
     }),
     TemplateModule,
+    PrismaModule,
   ],
-
   controllers: [EmailController],
-  providers: [EmailService, PrismaService, EmailRepository],
+  providers: [EmailService, EmailRepository],
 })
 export class EmailModule {}

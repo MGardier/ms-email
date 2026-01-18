@@ -6,9 +6,8 @@ import { EnumErrorCode } from '../enums/error-codes.enum';
 
 @Injectable()
 export class TemplateService {
-  private readonly logger = new Logger('Template Service');
+  private readonly logger = new Logger(TemplateService.name);
 
-  
   async getPathIfExist(templatePath: string): Promise<string> {
     const path = this.__getPath(templatePath);
     try {
@@ -28,18 +27,30 @@ export class TemplateService {
 
   /************************* PRIVATE FUNCTIONS  ************************************************************/
 
-  
-  private __getPath(templatePath: string) {
-    return `${join(
+  private __getPath(templatePath: string): string {
+    const basePath = join(
       process.cwd(),
       process.env.NODE_ENV === 'production'
         ? 'dist/template/pages'
         : 'src/template/pages',
-    )}/${templatePath}`;
+    );
+    const fullPath = join(basePath, templatePath);
+
+    if (!fullPath.startsWith(basePath)) {
+      throw new RpcException({
+        code: EnumErrorCode.TEMPLATE_PATH_INVALID,
+        context: {
+          operation: '__getPath',
+          templatePath,
+          reason: 'Path traversal detected',
+        },
+      });
+    }
+
+    return fullPath;
   }
 
-
-  private __getTemplateErrorCode(errorCode: string) {
+  private __getTemplateErrorCode(errorCode: string): EnumErrorCode {
     switch (errorCode) {
       case 'ENOENT':
         return EnumErrorCode.TEMPLATE_NOT_FOUND;

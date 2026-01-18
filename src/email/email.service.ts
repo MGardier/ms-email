@@ -18,7 +18,6 @@ export class EmailService {
   ) {}
   private readonly logger = new Logger(EmailService.name);
 
-
   async sendMail(
     payload: SendEmailDto,
   ): Promise<Pick<email, 'id' | 'gatewayEmailId'>> {
@@ -39,14 +38,12 @@ export class EmailService {
     );
   }
 
-
   async delete(id: number) {
     return await this.emailRepository.delete(id);
   }
 
   /************************* PRIVATE FUNCTIONS  ************************************************************/
 
-  
   private __send = async (data: ISendMailOptions): Promise<boolean> => {
     try {
       return await this.mailerService.sendMail(data);
@@ -74,7 +71,6 @@ export class EmailService {
     }
   };
 
- 
   private async __formatMailData(
     payload: SendEmailDto,
     path: string,

@@ -12,7 +12,7 @@ import {
 export class SendEmailDto {
   @IsArray()
   @ArrayNotEmpty()
-  @IsEmail({}, { each: true, message: 'the receivers are not valid ' })
+  @IsEmail({}, { each: true, message: 'the receivers are not valid' })
   receivers: string[];
 
   @IsEmail()
@@ -24,15 +24,13 @@ export class SendEmailDto {
   subject: string;
 
   @IsArray()
-  @ArrayNotEmpty()
   @IsOptional()
-  @IsEmail({}, { each: true, message: 'the cc are not valid ' })
+  @IsEmail({}, { each: true, message: 'the cc are not valid' })
   cc?: string[];
 
   @IsArray()
-  @ArrayNotEmpty()
-  @IsEmail({}, { each: true, message: 'the bcc are not valid ' })
   @IsOptional()
+  @IsEmail({}, { each: true, message: 'the bcc are not valid' })
   bcc?: string[];
 
   @IsOptional()

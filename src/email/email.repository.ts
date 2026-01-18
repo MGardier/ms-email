@@ -1,4 +1,4 @@
-import { Injectable, Catch } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { RpcException } from '@nestjs/microservices';
 import { email, EmailStatus, Services } from '@prisma/client';
 
@@ -12,7 +12,6 @@ import { SendEmailDto } from './dto/send-email-dto';
 export class EmailRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
-  
   async create(dto: SendEmailDto, selectColumns?: (keyof email)[]) {
     try {
       return await this.prismaService.email.create({
@@ -43,7 +42,6 @@ export class EmailRepository {
     }
   }
 
-  
   async update(
     id: number,
     dto: UpdateEmailDto,
@@ -74,7 +72,6 @@ export class EmailRepository {
     }
   }
 
- 
   async delete(id: number, selectColumns?: (keyof email)[]) {
     try {
       return await this.prismaService.email.delete({
@@ -97,7 +94,6 @@ export class EmailRepository {
 
   /************************* PRIVATE FUNCTIONS  ************************************************************/
 
-  
   private __getSelectColumns(
     columns?: (keyof email)[],
   ): Record<keyof email, boolean> | undefined {
