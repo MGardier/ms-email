@@ -12,7 +12,7 @@ import { SendEmailDto } from './dto/send-email-dto';
 export class EmailRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
-  /** Responsability : create an email with prismaService */
+  
   async create(dto: SendEmailDto, selectColumns?: (keyof email)[]) {
     try {
       return await this.prismaService.email.create({
@@ -43,7 +43,7 @@ export class EmailRepository {
     }
   }
 
-  /** Responsability : update an email with prismaService */
+  
   async update(
     id: number,
     dto: UpdateEmailDto,
@@ -74,7 +74,7 @@ export class EmailRepository {
     }
   }
 
-  /** Responsability : delete an email with prismaService */
+ 
   async delete(id: number, selectColumns?: (keyof email)[]) {
     try {
       return await this.prismaService.email.delete({
@@ -97,7 +97,7 @@ export class EmailRepository {
 
   /************************* PRIVATE FUNCTIONS  ************************************************************/
 
-  /** Responsability : Format an array of field of Email in Prisma select */
+  
   private __getSelectColumns(
     columns?: (keyof email)[],
   ): Record<keyof email, boolean> | undefined {

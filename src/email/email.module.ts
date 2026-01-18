@@ -28,8 +28,8 @@ import { TemplateModule } from 'src/template/template.module';
           dir: join(
             process.cwd(),
             process.env.NODE_ENV === 'production'
-              ? 'dist/templates'
-              : 'src/templates',
+              ? 'dist/template'
+              : 'src/template',
           ),
 
           adapter: new HandlebarsAdapter(),

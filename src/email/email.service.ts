@@ -18,7 +18,7 @@ export class EmailService {
   ) {}
   private readonly logger = new Logger(EmailService.name);
 
-  /** Responsability : manage all step for sending an email */
+
   async sendMail(
     payload: SendEmailDto,
   ): Promise<Pick<email, 'id' | 'gatewayEmailId'>> {
@@ -28,9 +28,9 @@ export class EmailService {
     const email = await this.emailRepository.create(payload, ['id']);
 
     const data = await this.__formatMailData(payload, path);
-    //this.logger.log(`\n Sending email to ${payload.receivers.join(', ')} \n`);
+    this.logger.log(`\n Sending email to ${payload.receivers.join(', ')} \n`);
     await this.__send(data);
-    //this.logger.log(`\n Email sent successfully, ID: ${email.id} \n`);
+    this.logger.log(`\n Email sent successfully, ID: ${email.id} \n`);
 
     return await this.emailRepository.update(
       email.id,
@@ -39,14 +39,14 @@ export class EmailService {
     );
   }
 
-  /** Responsability : call repository to remove an email */
+
   async delete(id: number) {
     return await this.emailRepository.delete(id);
   }
 
   /************************* PRIVATE FUNCTIONS  ************************************************************/
 
-  /** Responsability : send email with NestJs Mailer */
+  
   private __send = async (data: ISendMailOptions): Promise<boolean> => {
     try {
       return await this.mailerService.sendMail(data);
@@ -74,7 +74,7 @@ export class EmailService {
     }
   };
 
-  /** Responsability : format payload from controller to payload for NestJs Mailer */
+ 
   private async __formatMailData(
     payload: SendEmailDto,
     path: string,

@@ -18,18 +18,16 @@ async function bootstrap() {
       options: {
         inheritAppConfig: true,
         servers: [process.env.NATS_URL],
-        // ✅ Options supplémentaires
-        queue: 'email-service', // Important pour load balancing
+        
+        queue: 'email-service', 
         maxReconnectAttempts: 10,
         reconnectTimeWait: 1000,
         debug: true,
         verbose: true,
-        // ✅ Gestion des réponses
         noResponders: true,
       },
     },
   );
-  // app.useGlobalInterceptors(new RpcExceptionInterceptor());
   app.useGlobalFilters(new RpcExceptionFilter());
 
   app.useGlobalPipes(

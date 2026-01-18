@@ -4,8 +4,7 @@ import { EnumErrorCode } from 'src/enums/error-codes.enum';
 import { RpcErrorResponseInterface } from 'src/interfaces/rpc-error-response.interface';
 import { Observable, throwError } from 'rxjs';
 
-//Formater les erreurs
-// logger les erreurs
+
 
 @Catch(RpcException)
 export class RpcExceptionFilter extends BaseRpcExceptionFilter {

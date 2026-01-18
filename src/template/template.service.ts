@@ -8,7 +8,7 @@ import { EnumErrorCode } from '../enums/error-codes.enum';
 export class TemplateService {
   private readonly logger = new Logger('Template Service');
 
-  /** Responsability : check if template path match a file and return path if so */
+  
   async getPathIfExist(templatePath: string): Promise<string> {
     const path = this.__getPath(templatePath);
     try {
@@ -28,17 +28,17 @@ export class TemplateService {
 
   /************************* PRIVATE FUNCTIONS  ************************************************************/
 
-  /** Responsability : create and return path for a template */
+  
   private __getPath(templatePath: string) {
     return `${join(
       process.cwd(),
       process.env.NODE_ENV === 'production'
-        ? 'dist/templates/pages'
-        : 'src/templates/pages',
+        ? 'dist/template/pages'
+        : 'src/template/pages',
     )}/${templatePath}`;
   }
 
-  /** Responsability : create and return path for a template */
+
   private __getTemplateErrorCode(errorCode: string) {
     switch (errorCode) {
       case 'ENOENT':
