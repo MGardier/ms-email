@@ -1,12 +1,13 @@
 import { Module } from '@nestjs/common';
-import { EmailService } from './email.service';
-import { EmailController } from './email.controller';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
-import { env } from 'process';
 import { join } from 'path';
+import { env } from 'process';
+
+import { TemplateModule } from 'src/modules/template/template.module';
+import { EmailService } from './email.service';
+import { EmailController } from './email.controller';
 import { EmailRepository } from './email.repository';
-import { TemplateModule } from 'src/template/template.module';
 import { PrismaModule } from 'prisma/prisma.module';
 
 @Module({
@@ -27,8 +28,8 @@ import { PrismaModule } from 'prisma/prisma.module';
           dir: join(
             process.cwd(),
             process.env.NODE_ENV === 'production'
-              ? 'dist/template'
-              : 'src/template',
+              ? 'dist/modules/template'
+              : 'src/modules/template',
           ),
           adapter: new HandlebarsAdapter(),
           options: {

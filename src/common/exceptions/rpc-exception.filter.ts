@@ -1,28 +1,28 @@
 import { Catch, Logger } from '@nestjs/common';
 import { BaseRpcExceptionFilter, RpcException } from '@nestjs/microservices';
-import { EnumErrorCode } from 'src/enums/error-codes.enum';
-import { RpcErrorResponseInterface } from 'src/interfaces/rpc-error-response.interface';
 import { Observable, throwError } from 'rxjs';
+import { ErrorCode } from 'src/common/enums/error-codes.enum';
+import { IRpcErrorResponse } from 'src/common/types/rpc.types';
 
 @Catch(RpcException)
 export class RpcExceptionFilter extends BaseRpcExceptionFilter {
   private readonly logger = new Logger(RpcExceptionFilter.name);
 
-  catch(exception: RpcException): Observable<RpcErrorResponseInterface> {
+  catch(exception: RpcException): Observable<IRpcErrorResponse> {
     const error = exception.getError() as {
       code?: string;
       context?: Record<string, unknown>;
     };
     const context = error?.context;
     const code = error?.code;
-    const message = this.__buildContextualMessage(code, context);
+    const message = this.buildContextualMessage(code, context);
 
-    this.__logException((context?.operation as string) ?? 'unknown', message);
+    this.logException((context?.operation as string) ?? 'unknown', message);
 
-    return throwError(() => this.__formatException(message, code, context));
+    return throwError(() => this.formatException(message, code, context));
   }
 
-  private __buildContextualMessage(
+  private buildContextualMessage(
     code: string | undefined,
     context: Record<string, unknown> | undefined,
   ): string {
@@ -32,36 +32,36 @@ export class RpcExceptionFilter extends BaseRpcExceptionFilter {
     const path = (ctx.path as string) || 'chemin inconnu';
 
     switch (code) {
-      /** ---------- TEMPLATE --------------- */
-      case EnumErrorCode.TEMPLATE_NOT_FOUND:
+      /* TEMPLATE */
+      case ErrorCode.TEMPLATE_NOT_FOUND:
         return `Opération : ${operation} => Template ${templatePath} introuvable dans ${path}.`;
 
-      case EnumErrorCode.TEMPLATE_CANNOT_ACCESS:
+      case ErrorCode.TEMPLATE_CANNOT_ACCESS:
         return `Opération : ${operation} => Le système a bien trouvé le template : "${templatePath}" mais n'a pas les permissions pour y accéder.`;
 
-      case EnumErrorCode.TEMPLATE_UNKNOWN_ERROR:
+      case ErrorCode.TEMPLATE_UNKNOWN_ERROR:
         return `Opération : ${operation} => Une erreur inconnue est survenue pour le template : "${templatePath}".`;
 
-      case EnumErrorCode.TEMPLATE_PATH_INVALID:
+      case ErrorCode.TEMPLATE_PATH_INVALID:
         return `Opération : ${operation} => Le chemin du template "${templatePath}" est invalide (tentative de path traversal détectée).`;
 
-      /** ---------- PRISMA --------------- */
-      case EnumErrorCode.PRISMA_EMAIL_CREATE_ERROR: {
+      /* PRISMA */
+      case ErrorCode.PRISMA_EMAIL_CREATE_ERROR: {
         const data = ctx.data as Record<string, unknown> | undefined;
         return `Opération : ${operation} => Impossible de créer l'email "${data?.subject}" pour "${data?.receivers}" à cause de l'erreur : ${ctx.prismaError}.`;
       }
 
-      case EnumErrorCode.PRISMA_EMAIL_UPDATE_ERROR:
+      case ErrorCode.PRISMA_EMAIL_UPDATE_ERROR:
         return `Opération : ${operation} => Impossible de mettre à jour l'email ${ctx.id} à cause de l'erreur : ${ctx.prismaError}.`;
 
-      case EnumErrorCode.PRISMA_EMAIL_DELETE_ERROR:
+      case ErrorCode.PRISMA_EMAIL_DELETE_ERROR:
         return `Opération : ${operation} => Impossible de supprimer l'email ${ctx.id} à cause de l'erreur : ${ctx.prismaError}.`;
 
-      /** ---------- NESTJSMAILER --------------- */
-      case EnumErrorCode.NESTJSMAILER_SENDING_FAILED:
+      /* NESTJS MAILER */
+      case ErrorCode.NESTJSMAILER_SENDING_FAILED:
         return `Opération : ${operation} => Echec de l'envoi d'un email, expéditeur : ${ctx.sender || 'inconnu'} - destinataires ${ctx.receivers || 'inconnu'}, chemin : ${path}, variables : ${ctx.variables || 'inconnu'}.`;
 
-      case EnumErrorCode.NESTJSMAILER_AUTHENTIFICATION_FAILED:
+      case ErrorCode.NESTJSMAILER_AUTHENTICATION_FAILED:
         return `Opération : ${operation} => Les identifiants de l'email utilisé sont incorrects, host: ${ctx.host}, email : ${ctx.sender}, token: ******.`;
 
       default:
@@ -69,11 +69,11 @@ export class RpcExceptionFilter extends BaseRpcExceptionFilter {
     }
   }
 
-  private __formatException(
+  private formatException(
     message: string,
     code: string | undefined,
     context: Record<string, unknown> | undefined,
-  ): RpcErrorResponseInterface {
+  ): IRpcErrorResponse {
     return {
       success: false,
       error: {
@@ -85,15 +85,13 @@ export class RpcExceptionFilter extends BaseRpcExceptionFilter {
     };
   }
 
-  private __logException(operation: string, message: string): void {
+  private logException(operation: string, message: string): void {
     this.logger.error(
-      `
-      \n----------------------------------------------------------
-      \n ❌ Operation  : ${operation}
-      \n ❌ Error  : ${message}
-      \n ❌ Timestamp  : ${new Date().toString()}
-      \n ----------------------------------------------------------
-      `,
+      `\n----------------------------------------------------------` +
+        `\n ❌ Operation  : ${operation}` +
+        `\n ❌ Error  : ${message}` +
+        `\n ❌ Timestamp  : ${new Date().toISOString()}` +
+        `\n----------------------------------------------------------`,
     );
   }
 }

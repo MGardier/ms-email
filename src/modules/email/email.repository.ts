@@ -2,20 +2,22 @@ import { Injectable } from '@nestjs/common';
 import { RpcException } from '@nestjs/microservices';
 import { email, EmailStatus, Services } from '@prisma/client';
 
+import { ErrorCode } from 'src/common/enums/error-codes.enum';
+import { UpdateEmailRequestDto } from './dto/request/update-email.request.dto';
+import { SendEmailRequestDto } from './dto/request/send-email.request.dto';
 import { PrismaService } from 'prisma/prisma.service';
-import { EnumErrorCode } from 'src/enums/error-codes.enum';
-
-import { UpdateEmailDto } from './dto/update-email.dto';
-import { SendEmailDto } from './dto/send-email-dto';
 
 @Injectable()
 export class EmailRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async create(dto: SendEmailDto, selectColumns?: (keyof email)[]) {
+  async create(
+    dto: SendEmailRequestDto,
+    selectColumns?: (keyof email)[],
+  ): Promise<Partial<email>> {
     try {
       return await this.prismaService.email.create({
-        select: this.__getSelectColumns(selectColumns),
+        select: this.getSelectColumns(selectColumns),
         data: {
           ...dto,
           sender: dto.sender || process.env.MAILER_SENDER,
@@ -26,7 +28,7 @@ export class EmailRepository {
       });
     } catch (error) {
       throw new RpcException({
-        code: EnumErrorCode.PRISMA_EMAIL_CREATE_ERROR,
+        code: ErrorCode.PRISMA_EMAIL_CREATE_ERROR,
         context: {
           operation: 'email-repository-create',
           data: {
@@ -44,12 +46,12 @@ export class EmailRepository {
 
   async update(
     id: number,
-    dto: UpdateEmailDto,
+    dto: UpdateEmailRequestDto,
     selectColumns?: (keyof email)[],
-  ) {
+  ): Promise<Partial<email>> {
     try {
       return await this.prismaService.email.update({
-        select: this.__getSelectColumns(selectColumns),
+        select: this.getSelectColumns(selectColumns),
         data: {
           ...dto,
         },
@@ -59,7 +61,7 @@ export class EmailRepository {
       });
     } catch (error) {
       throw new RpcException({
-        code: EnumErrorCode.PRISMA_EMAIL_UPDATE_ERROR,
+        code: ErrorCode.PRISMA_EMAIL_UPDATE_ERROR,
         context: {
           operation: 'email-repository-update',
           data: {
@@ -72,17 +74,20 @@ export class EmailRepository {
     }
   }
 
-  async delete(id: number, selectColumns?: (keyof email)[]) {
+  async delete(
+    id: number,
+    selectColumns?: (keyof email)[],
+  ): Promise<Partial<email>> {
     try {
       return await this.prismaService.email.delete({
-        select: this.__getSelectColumns(selectColumns),
+        select: this.getSelectColumns(selectColumns),
         where: {
           id,
         },
       });
     } catch (error) {
       throw new RpcException({
-        code: EnumErrorCode.PRISMA_EMAIL_DELETE_ERROR,
+        code: ErrorCode.PRISMA_EMAIL_DELETE_ERROR,
         context: {
           operation: 'email-repository-delete',
           id,
@@ -92,18 +97,16 @@ export class EmailRepository {
     }
   }
 
-  /************************* PRIVATE FUNCTIONS  ************************************************************/
-
-  private __getSelectColumns(
+  private getSelectColumns(
     columns?: (keyof email)[],
   ): Record<keyof email, boolean> | undefined {
-    const select = columns?.reduce(
+    if (!columns) return undefined;
+    return columns.reduce(
       (acc, column) => {
         acc[column] = true;
         return acc;
       },
       {} as Record<keyof email, boolean>,
     );
-    return select;
   }
 }

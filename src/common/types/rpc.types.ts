@@ -1,9 +1,9 @@
-export interface RpcErrorResponseInterface {
+export interface IRpcErrorResponse {
   success: false;
   error: {
     code: string;
     message: string;
-    context?: Record<string, any>;
+    context?: Record<string, unknown>;
     timestamp: Date;
   };
 }

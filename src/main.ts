@@ -1,5 +1,4 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
 import {
   MicroserviceOptions,
   RpcException,
@@ -7,8 +6,9 @@ import {
 } from '@nestjs/microservices';
 import { ValidationPipe } from '@nestjs/common';
 
-import { EnumErrorCode } from './enums/error-codes.enum';
-import { RpcExceptionFilter } from './filters/rpc-exception.filter';
+import { AppModule } from './app.module';
+import { ErrorCode } from 'src/common/enums/error-codes.enum';
+import { RpcExceptionFilter } from 'src/common/exceptions/rpc-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(
@@ -36,7 +36,7 @@ async function bootstrap() {
       forbidNonWhitelisted: true,
       exceptionFactory: (errors) => {
         const result = {
-          code: EnumErrorCode.INVALID_PAYLOAD,
+          code: ErrorCode.INVALID_PAYLOAD,
           errors: errors.map((error) => ({
             property: error.property,
             constraintsViolations: error.constraints,

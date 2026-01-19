@@ -2,20 +2,20 @@ import { Injectable, Logger } from '@nestjs/common';
 import { RpcException } from '@nestjs/microservices';
 import { join } from 'path';
 import * as fs from 'fs/promises';
-import { EnumErrorCode } from '../enums/error-codes.enum';
+import { ErrorCode } from 'src/common/enums/error-codes.enum';
 
 @Injectable()
 export class TemplateService {
   private readonly logger = new Logger(TemplateService.name);
 
   async getPathIfExist(templatePath: string): Promise<string> {
-    const path = this.__getPath(templatePath);
+    const path = this.getPath(templatePath);
     try {
       await fs.access(path);
       return path;
     } catch (error) {
       throw new RpcException({
-        code: this.__getTemplateErrorCode(error.code),
+        code: this.getTemplateErrorCode(error.code),
         context: {
           operation: 'getPathIfExist',
           path,
@@ -25,22 +25,20 @@ export class TemplateService {
     }
   }
 
-  /************************* PRIVATE FUNCTIONS  ************************************************************/
-
-  private __getPath(templatePath: string): string {
+  private getPath(templatePath: string): string {
     const basePath = join(
       process.cwd(),
       process.env.NODE_ENV === 'production'
-        ? 'dist/template/pages'
-        : 'src/template/pages',
+        ? 'dist/modules/template/pages'
+        : 'src/modules/template/pages',
     );
     const fullPath = join(basePath, templatePath);
 
     if (!fullPath.startsWith(basePath)) {
       throw new RpcException({
-        code: EnumErrorCode.TEMPLATE_PATH_INVALID,
+        code: ErrorCode.TEMPLATE_PATH_INVALID,
         context: {
-          operation: '__getPath',
+          operation: 'getPath',
           templatePath,
           reason: 'Path traversal detected',
         },
@@ -50,14 +48,14 @@ export class TemplateService {
     return fullPath;
   }
 
-  private __getTemplateErrorCode(errorCode: string): EnumErrorCode {
+  private getTemplateErrorCode(errorCode: string): ErrorCode {
     switch (errorCode) {
       case 'ENOENT':
-        return EnumErrorCode.TEMPLATE_NOT_FOUND;
+        return ErrorCode.TEMPLATE_NOT_FOUND;
       case 'EACCES':
-        return EnumErrorCode.TEMPLATE_CANNOT_ACCESS;
+        return ErrorCode.TEMPLATE_CANNOT_ACCESS;
       default:
-        return EnumErrorCode.TEMPLATE_UNKNOWN_ERROR;
+        return ErrorCode.TEMPLATE_UNKNOWN_ERROR;
     }
   }
 }

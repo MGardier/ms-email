@@ -9,7 +9,7 @@ import {
   IsString,
 } from 'class-validator';
 
-export class SendEmailDto {
+export class SendEmailRequestDto {
   @IsArray()
   @ArrayNotEmpty()
   @IsEmail({}, { each: true, message: 'the receivers are not valid' })
