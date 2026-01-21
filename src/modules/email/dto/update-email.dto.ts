@@ -2,7 +2,7 @@ import { EmailStatus } from '@prisma/client';
 import { IsDate, IsEnum, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
 
-export class UpdateEmailRequestDto {
+export class UpdateEmailDto {
   @IsEnum(EmailStatus)
   @IsOptional()
   status?: EmailStatus;

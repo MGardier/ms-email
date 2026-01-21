@@ -3,8 +3,8 @@ import { RpcException } from '@nestjs/microservices';
 import { email, EmailStatus, Services } from '@prisma/client';
 
 import { ErrorCode } from 'src/common/enums/error-codes.enum';
-import { UpdateEmailRequestDto } from './dto/request/update-email.request.dto';
-import { SendEmailRequestDto } from './dto/request/send-email.request.dto';
+import { UpdateEmailDto } from './dto/update-email.dto';
+import { SendEmailDto } from './dto/send-email.dto';
 import { PrismaService } from 'prisma/prisma.service';
 
 @Injectable()
@@ -12,7 +12,7 @@ export class EmailRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
   async create(
-    dto: SendEmailRequestDto,
+    dto: SendEmailDto,
     selectColumns?: (keyof email)[],
   ): Promise<Partial<email>> {
     try {
@@ -46,7 +46,7 @@ export class EmailRepository {
 
   async update(
     id: number,
-    dto: UpdateEmailRequestDto,
+    dto: UpdateEmailDto,
     selectColumns?: (keyof email)[],
   ): Promise<Partial<email>> {
     try {

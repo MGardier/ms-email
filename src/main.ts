@@ -8,7 +8,7 @@ import { ValidationPipe } from '@nestjs/common';
 
 import { AppModule } from './app.module';
 import { ErrorCode } from 'src/common/enums/error-codes.enum';
-import { RpcExceptionFilter } from 'src/common/exceptions/rpc-exception.filter';
+import { RpcExceptionFilter } from 'src/common/filters/rpc-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(

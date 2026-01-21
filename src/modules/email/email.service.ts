@@ -4,7 +4,7 @@ import { ISendMailOptions, MailerService } from '@nestjs-modules/mailer';
 import { EmailStatus } from '@prisma/client';
 import { ErrorCode } from 'src/common/enums/error-codes.enum';
 import { EmailRepository } from './email.repository';
-import { SendEmailRequestDto } from './dto/request/send-email.request.dto';
+import { SendEmailDto } from './dto/send-email.dto';
 import { TemplateService } from 'src/modules/template/template.service';
 import { IEmailSendResult } from './types';
 
@@ -18,7 +18,7 @@ export class EmailService {
     private readonly templateService: TemplateService,
   ) {}
 
-  async sendMail(payload: SendEmailRequestDto): Promise<IEmailSendResult> {
+  async sendMail(payload: SendEmailDto): Promise<IEmailSendResult> {
     const path = await this.templateService.getPathIfExist(
       payload.templatePath,
     );
@@ -74,7 +74,7 @@ export class EmailService {
   }
 
   private formatMailData(
-    payload: SendEmailRequestDto,
+    payload: SendEmailDto,
     path: string,
   ): ISendMailOptions {
     return {

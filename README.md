@@ -50,9 +50,7 @@ $ pnpm run start:dev
 src/
 ├── modules/
 │   ├── email/
-│   │   ├── dto/
-│   │   │   ├── request/           # Input DTOs (request validation)
-│   │   │   └── response/          # Output DTOs (response serialization)
+│   │   ├── dto/                   # DTOs (validation)
 │   │   ├── types.ts               # Module-specific interfaces/types
 │   │   ├── email.controller.ts
 │   │   ├── email.service.ts
@@ -66,7 +64,7 @@ src/
 │       └── pages/                 # Email templates (Handlebars)
 │
 ├── common/
-│   ├── exceptions/                # Global exception filters
+│   ├── filters/                   # Global exception filters
 │   ├── enums/                     # Error codes & status enums
 │   └── types/                     # Shared type definitions
 │
@@ -106,8 +104,7 @@ email.repository.ts           # Repository implementation
 types.ts                      # Module types/interfaces
 
 rpc-exception.filter.ts       # Exception filter
-send-email.request.dto.ts     # Request DTO
-send-email.response.dto.ts    # Response DTO
+send-email.dto.ts             # DTO
 ```
 
 ---
@@ -115,12 +112,11 @@ send-email.response.dto.ts    # Response DTO
 ### DTOs Conventions
 
 #### Naming
-- **Request Classes**: PascalCase + `RequestDto` (e.g., `SendEmailRequestDto`)
-- **Response Classes**: PascalCase + `ResponseDto` (e.g., `SendEmailResponseDto`)
+- **Classes**: PascalCase + `Dto` (e.g., `SendEmailDto`, `DeleteEmailDto`)
 
 #### Files
-- Request DTOs in `dto/request/`
-- Response DTOs in `dto/response/`
+- DTOs in `dto/` directory
+- File naming: `{action}-{entity}.dto.ts` (e.g., `send-email.dto.ts`)
 
 ---
 
@@ -151,7 +147,7 @@ send-email.response.dto.ts    # Response DTO
 | Directory | Purpose | Examples |
 |-----------|---------|----------|
 | `database/` | Database connection | `PrismaService`, `PrismaModule` |
-| `exceptions/` | Global exception filters | `RpcExceptionFilter` |
+| `filters/` | Global exception filters | `RpcExceptionFilter` |
 | `enums/` | Error codes & status | `ErrorCode` |
 | `types/` | Shared type definitions | `IRpcErrorResponse` |
 
@@ -220,8 +216,8 @@ await firstValueFrom(this.natsClient.send('email.send', payload));
 
 | Pattern | Description | Payload |
 |---------|-------------|---------|
-| `email.send` | Send an email | `SendEmailRequestDto` |
-| `email.delete` | Delete an email | `DeleteEmailRequestDto` |
+| `email.send` | Send an email | `SendEmailDto` |
+| `email.delete` | Delete an email | `DeleteEmailDto` |
 
 ---
 
