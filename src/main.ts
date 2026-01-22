@@ -1,52 +1,51 @@
 import { NestFactory } from '@nestjs/core';
-import {
-  MicroserviceOptions,
-  RpcException,
-  Transport,
-} from '@nestjs/microservices';
-import { ValidationPipe } from '@nestjs/common';
-
+import { Transport, MicroserviceOptions } from '@nestjs/microservices';
+import { ValidationPipe, Logger } from '@nestjs/common';
 import { AppModule } from './app.module';
-import { ErrorCode } from 'src/common/enums/error-codes.enum';
-import { RpcExceptionFilter } from 'src/common/filters/rpc-exception.filter';
+import { RpcExceptionFilter } from './common/filters/rpc-exception.filter';
 
 async function bootstrap() {
-  const app = await NestFactory.createMicroservice<MicroserviceOptions>(
-    AppModule,
-    {
-      transport: Transport.NATS,
-      options: {
-        inheritAppConfig: true,
-        servers: [process.env.NATS_URL],
+  const logger = new Logger('NestApplication');
 
-        queue: 'email-service',
-        maxReconnectAttempts: 10,
-        reconnectTimeWait: 1000,
-        debug: true,
-        verbose: true,
-        noResponders: true,
+  // HTTP app for health checks
+  const app = await NestFactory.create(AppModule);
+
+  // RabbitMQ microservice
+  app.connectMicroservice<MicroserviceOptions>({
+    transport: Transport.RMQ,
+    options: {
+      urls: [process.env.RABBITMQ_URL || 'amqp://root:root@localhost:5672'],
+      queue: process.env.RABBITMQ_QUEUE || 'email_queue',
+      queueOptions: {
+        durable: true,
       },
+      prefetchCount: parseInt(process.env.RABBITMQ_PREFETCH || '1', 10),
+      noAck: false,
     },
-  );
-  app.useGlobalFilters(new RpcExceptionFilter());
+  });
 
+  // Global pipes and filters
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
       forbidNonWhitelisted: true,
-      exceptionFactory: (errors) => {
-        const result = {
-          code: ErrorCode.INVALID_PAYLOAD,
-          errors: errors.map((error) => ({
-            property: error.property,
-            constraintsViolations: error.constraints,
-            valueNotValid: error.value || 'undefined',
-          })),
-        };
-        return new RpcException(result);
-      },
+      transform: true,
     }),
   );
-  await app.listen();
+  app.useGlobalFilters(new RpcExceptionFilter());
+
+  app.enableShutdownHooks();
+
+  await app.startAllMicroservices();
+
+  const port = process.env.PORT || 3000;
+  await app.listen(port);
+
+  logger.log(`Email microservice started on port ${port}`);
+  logger.log(`Health check available at http://localhost:${port}/health`);
+  logger.log(
+    `RabbitMQ consumer listening on queue: ${process.env.RABBITMQ_QUEUE || 'email_queue'}`,
+  );
 }
+
 bootstrap();

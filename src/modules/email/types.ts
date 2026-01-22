@@ -1,6 +1,6 @@
 export interface IEmailSendResult {
-  id: number;
-  gatewayEmailId?: number;
+  id: string;
+  providerMessageId?: string;
 }
 
 export interface IEmailContext {

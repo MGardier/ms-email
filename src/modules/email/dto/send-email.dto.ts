@@ -1,9 +1,10 @@
 import {
   ArrayNotEmpty,
   IsArray,
+  IsBoolean,
   IsEmail,
+  IsInt,
   IsNotEmpty,
-  IsNumber,
   IsObject,
   IsOptional,
   IsString,
@@ -12,12 +13,8 @@ import {
 export class SendEmailDto {
   @IsArray()
   @ArrayNotEmpty()
-  @IsEmail({}, { each: true, message: 'the receivers are not valid' })
-  receivers: string[];
-
-  @IsEmail()
-  @IsOptional()
-  sender?: string;
+  @IsEmail({}, { each: true, message: 'the recipients are not valid' })
+  recipients: string[];
 
   @IsString()
   @IsNotEmpty()
@@ -33,15 +30,31 @@ export class SendEmailDto {
   @IsEmail({}, { each: true, message: 'the bcc are not valid' })
   bcc?: string[];
 
+  @IsString()
   @IsOptional()
-  @IsNumber()
-  gatewayEmailId?: number;
+  html?: string;
+
+  @IsInt()
+  @IsOptional()
+  templateVersionId?: number;
 
   @IsObject()
   @IsOptional()
-  templateVariables?: Record<string, string>;
+  variables?: Record<string, unknown>;
 
+  @IsInt()
   @IsNotEmpty()
+  userId: number;
+
   @IsString()
-  templatePath: string;
+  @IsNotEmpty()
+  origin: string;
+
+  @IsBoolean()
+  @IsOptional()
+  isApproved?: boolean;
+
+  @IsObject()
+  @IsOptional()
+  metadata?: Record<string, unknown>;
 }

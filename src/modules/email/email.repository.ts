@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { RpcException } from '@nestjs/microservices';
-import { email, EmailStatus, Services } from '@prisma/client';
+import { Email, Prisma } from '@prisma/client';
 
 import { ErrorCode } from 'src/common/enums/error-codes.enum';
 import { UpdateEmailDto } from './dto/update-email.dto';
@@ -13,17 +13,23 @@ export class EmailRepository {
 
   async create(
     dto: SendEmailDto,
-    selectColumns?: (keyof email)[],
-  ): Promise<Partial<email>> {
+    selectColumns?: (keyof Email)[],
+  ): Promise<Partial<Email>> {
     try {
       return await this.prismaService.email.create({
         select: this.getSelectColumns(selectColumns),
         data: {
-          ...dto,
-          sender: dto.sender || process.env.MAILER_SENDER,
-          status: EmailStatus.IS_PENDING,
-          services: Services.NODEJS_MAILER,
-          templateVariables: JSON.stringify(dto.templateVariables),
+          recipients: dto.recipients,
+          cc: dto.cc ?? [],
+          bcc: dto.bcc ?? [],
+          subject: dto.subject,
+          html: dto.html,
+          templateVersionId: dto.templateVersionId,
+          variables: dto.variables as Prisma.InputJsonValue,
+          userId: dto.userId,
+          origin: dto.origin,
+          isApproved: dto.isApproved ?? true,
+          metadata: dto.metadata as Prisma.InputJsonValue,
         },
       });
     } catch (error) {
@@ -32,23 +38,22 @@ export class EmailRepository {
         context: {
           operation: 'email-repository-create',
           data: {
-            ...dto,
-            sender: dto.sender || process.env.MAILER_SENDER,
-            status: EmailStatus.IS_PENDING,
-            services: Services.NODEJS_MAILER,
-            templateVariables: JSON.stringify(dto.templateVariables),
+            recipients: dto.recipients,
+            subject: dto.subject,
+            userId: dto.userId,
+            origin: dto.origin,
           },
-          prismaError: error.message,
+          prismaError: (error as Error).message,
         },
       });
     }
   }
 
   async update(
-    id: number,
+    id: string,
     dto: UpdateEmailDto,
-    selectColumns?: (keyof email)[],
-  ): Promise<Partial<email>> {
+    selectColumns?: (keyof Email)[],
+  ): Promise<Partial<Email>> {
     try {
       return await this.prismaService.email.update({
         select: this.getSelectColumns(selectColumns),
@@ -68,16 +73,16 @@ export class EmailRepository {
             ...dto,
           },
           id,
-          prismaError: error.message,
+          prismaError: (error as Error).message,
         },
       });
     }
   }
 
   async delete(
-    id: number,
-    selectColumns?: (keyof email)[],
-  ): Promise<Partial<email>> {
+    id: string,
+    selectColumns?: (keyof Email)[],
+  ): Promise<Partial<Email>> {
     try {
       return await this.prismaService.email.delete({
         select: this.getSelectColumns(selectColumns),
@@ -91,22 +96,22 @@ export class EmailRepository {
         context: {
           operation: 'email-repository-delete',
           id,
-          prismaError: error.message,
+          prismaError: (error as Error).message,
         },
       });
     }
   }
 
   private getSelectColumns(
-    columns?: (keyof email)[],
-  ): Record<keyof email, boolean> | undefined {
+    columns?: (keyof Email)[],
+  ): Record<keyof Email, boolean> | undefined {
     if (!columns) return undefined;
     return columns.reduce(
       (acc, column) => {
         acc[column] = true;
         return acc;
       },
-      {} as Record<keyof email, boolean>,
+      {} as Record<keyof Email, boolean>,
     );
   }
 }

@@ -1,4 +1,23 @@
 services:
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    restart: unless-stopped
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+      - ./rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro
+      - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+    healthcheck:
+      test: ['CMD', 'rabbitmq-diagnostics', 'check_port_connectivity']
+      interval: 10s
+      timeout: 5s
+      start_period: 30s
+      retries: 5
+    networks:
+      - app-internal
+
   postgres:
     image: postgres:17-alpine
     restart: unless-stopped
@@ -26,7 +45,7 @@ services:
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@local.dev}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:?err}
-      PGADMIN_CONFIG_SERVER_MODE: 'False'  # Not for production
+      PGADMIN_CONFIG_SERVER_MODE: 'False' # Not for production
     volumes:
       - pgadmin_data:/var/lib/pgadmin
     ports:
@@ -45,7 +64,10 @@ services:
 networks:
   db-internal:
     driver: bridge
+  app-internal:
+    driver: bridge
 
 volumes:
   postgres_data:
   pgadmin_data:
+  rabbitmq_data:

@@ -10,5 +10,5 @@ export class UpdateEmailDto {
   @IsDate()
   @IsOptional()
   @Type(() => Date)
-  sendAt?: Date;
+  scheduledAt?: Date;
 }

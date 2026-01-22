@@ -27,45 +27,55 @@ export class RpcExceptionFilter extends BaseRpcExceptionFilter {
     context: Record<string, unknown> | undefined,
   ): string {
     const ctx = context ?? {};
-    const operation = (ctx.operation as string) || 'inconnu';
-    const templatePath = (ctx.templatePath as string) || 'inconnu';
-    const path = (ctx.path as string) || 'chemin inconnu';
+    const operation = (ctx.operation as string) || 'unknown';
+    const templatePath = (ctx.templatePath as string) || 'unknown';
+    const path = (ctx.path as string) || 'unknown path';
 
     switch (code) {
       /* TEMPLATE */
       case ErrorCode.TEMPLATE_NOT_FOUND:
-        return `Opération : ${operation} => Template ${templatePath} introuvable dans ${path}.`;
+        return `Operation: ${operation} => Template ${templatePath} not found in ${path}.`;
 
       case ErrorCode.TEMPLATE_CANNOT_ACCESS:
-        return `Opération : ${operation} => Le système a bien trouvé le template : "${templatePath}" mais n'a pas les permissions pour y accéder.`;
+        return `Operation: ${operation} => Template "${templatePath}" was found but the system does not have permission to access it.`;
 
       case ErrorCode.TEMPLATE_UNKNOWN_ERROR:
-        return `Opération : ${operation} => Une erreur inconnue est survenue pour le template : "${templatePath}".`;
+        return `Operation: ${operation} => An unknown error occurred for template "${templatePath}".`;
 
       case ErrorCode.TEMPLATE_PATH_INVALID:
-        return `Opération : ${operation} => Le chemin du template "${templatePath}" est invalide (tentative de path traversal détectée).`;
+        return `Operation: ${operation} => Template path "${templatePath}" is invalid (path traversal attempt detected).`;
 
       /* PRISMA */
       case ErrorCode.PRISMA_EMAIL_CREATE_ERROR: {
         const data = ctx.data as Record<string, unknown> | undefined;
-        return `Opération : ${operation} => Impossible de créer l'email "${data?.subject}" pour "${data?.receivers}" à cause de l'erreur : ${ctx.prismaError}.`;
+        return `Operation: ${operation} => Failed to create email "${data?.subject}" for "${data?.receivers}" due to error: ${ctx.prismaError}.`;
       }
 
       case ErrorCode.PRISMA_EMAIL_UPDATE_ERROR:
-        return `Opération : ${operation} => Impossible de mettre à jour l'email ${ctx.id} à cause de l'erreur : ${ctx.prismaError}.`;
+        return `Operation: ${operation} => Failed to update email ${ctx.id} due to error: ${ctx.prismaError}.`;
 
       case ErrorCode.PRISMA_EMAIL_DELETE_ERROR:
-        return `Opération : ${operation} => Impossible de supprimer l'email ${ctx.id} à cause de l'erreur : ${ctx.prismaError}.`;
+        return `Operation: ${operation} => Failed to delete email ${ctx.id} due to error: ${ctx.prismaError}.`;
 
       /* NESTJS MAILER */
       case ErrorCode.NESTJSMAILER_SENDING_FAILED:
-        return `Opération : ${operation} => Echec de l'envoi d'un email, expéditeur : ${ctx.sender || 'inconnu'} - destinataires ${ctx.receivers || 'inconnu'}, chemin : ${path}, variables : ${ctx.variables || 'inconnu'}.`;
+        return `Operation: ${operation} => Failed to send email, sender: ${ctx.sender || 'unknown'} - recipients: ${ctx.receivers || 'unknown'}, path: ${path}, variables: ${ctx.variables || 'unknown'}.`;
 
       case ErrorCode.NESTJSMAILER_AUTHENTICATION_FAILED:
-        return `Opération : ${operation} => Les identifiants de l'email utilisé sont incorrects, host: ${ctx.host}, email : ${ctx.sender}, token: ******.`;
+        return `Operation: ${operation} => Email credentials are invalid, host: ${ctx.host}, email: ${ctx.sender}, token: ******.`;
+
+      /* RABBITMQ */
+      case ErrorCode.RABBITMQ_CONNECTION_FAILED:
+        return `Operation: ${operation} => Failed to connect to RabbitMQ.`;
+
+      case ErrorCode.RABBITMQ_CHANNEL_ERROR:
+        return `Operation: ${operation} => RabbitMQ channel error.`;
+
+      case ErrorCode.RABBITMQ_MESSAGE_PROCESSING_FAILED:
+        return `Operation: ${operation} => Failed to process RabbitMQ message, reason: ${ctx.reason || 'unknown'}.`;
 
       default:
-        return `Erreur inconnue, code : ${code}`;
+        return `Unknown error, code: ${code}`;
     }
   }
 

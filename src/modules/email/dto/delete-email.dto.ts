@@ -1,7 +1,7 @@
-import { IsNotEmpty, IsNumber } from 'class-validator';
+import { IsNotEmpty, IsUUID } from 'class-validator';
 
 export class DeleteEmailDto {
-  @IsNumber()
+  @IsUUID()
   @IsNotEmpty()
-  id: number;
+  id: string;
 }

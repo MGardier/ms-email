@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { RpcException } from '@nestjs/microservices';
 import { ISendMailOptions, MailerService } from '@nestjs-modules/mailer';
-import { EmailStatus } from '@prisma/client';
+
 import { ErrorCode } from 'src/common/enums/error-codes.enum';
 import { EmailRepository } from './email.repository';
 import { SendEmailDto } from './dto/send-email.dto';
@@ -19,29 +19,29 @@ export class EmailService {
   ) {}
 
   async sendMail(payload: SendEmailDto): Promise<IEmailSendResult> {
-    const path = await this.templateService.getPathIfExist(
-      payload.templatePath,
-    );
+    // Get template path if templateVersionId is provided
+    let templatePath: string | undefined;
+    if (payload.templateVersionId) {
+      templatePath = await this.templateService.getPathIfExist(
+        payload.templateVersionId.toString(),
+      );
+    }
+
+    // Create email record
     const email = await this.emailRepository.create(payload, ['id']);
 
-    const data = this.formatMailData(payload, path);
-    this.logger.log(`Sending email to ${payload.receivers.join(', ')}`);
+    // Format and send email
+    const data = this.formatMailData(payload, templatePath);
+    this.logger.log(`Sending email to ${payload.recipients.join(', ')}`);
     await this.send(data);
     this.logger.log(`Email sent successfully, ID: ${email.id}`);
 
-    const result = await this.emailRepository.update(
-      email.id as number,
-      { status: EmailStatus.SEND, sendAt: new Date() },
-      ['id', 'gatewayEmailId'],
-    );
-
     return {
-      id: result.id as number,
-      gatewayEmailId: result.gatewayEmailId ?? undefined,
+      id: email.id as string,
     };
   }
 
-  async delete(id: number) {
+  async delete(id: string) {
     return await this.emailRepository.delete(id);
   }
 
@@ -49,7 +49,8 @@ export class EmailService {
     try {
       return await this.mailerService.sendMail(data);
     } catch (error) {
-      if (error.code === 'EAUTH') {
+      const err = error as Error & { code?: string };
+      if (err.code === 'EAUTH') {
         throw new RpcException({
           code: ErrorCode.NESTJSMAILER_AUTHENTICATION_FAILED,
           context: {
@@ -75,16 +76,24 @@ export class EmailService {
 
   private formatMailData(
     payload: SendEmailDto,
-    path: string,
+    templatePath?: string,
   ): ISendMailOptions {
-    return {
-      to: payload.receivers,
+    const mailOptions: ISendMailOptions = {
+      to: payload.recipients,
       subject: payload.subject,
-      sender: payload.sender || process.env.MAILER_SENDER,
-      template: path,
-      context: payload.templateVariables,
+      from: process.env.MAILER_SENDER,
       cc: payload.cc,
       bcc: payload.bcc,
     };
+
+    // Use HTML content if provided, otherwise use template
+    if (payload.html) {
+      mailOptions.html = payload.html;
+    } else if (templatePath) {
+      mailOptions.template = templatePath;
+      mailOptions.context = payload.variables as Record<string, unknown>;
+    }
+
+    return mailOptions;
   }
 }
