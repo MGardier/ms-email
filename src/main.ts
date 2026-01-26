@@ -29,7 +29,10 @@ async function bootstrap() {
         queueOptions: {
           durable: true,
         },
-        prefetchCount: parseInt(process.env.RABBITMQ_PREFETCH || DEFAULTS.RABBITMQ_PREFETCH, 10),
+        prefetchCount: parseInt(
+          process.env.RABBITMQ_PREFETCH || DEFAULTS.RABBITMQ_PREFETCH,
+          10,
+        ),
         noAck: false,
       },
     });

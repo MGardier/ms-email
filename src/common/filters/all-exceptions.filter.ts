@@ -131,7 +131,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const operation = (context.operation as string) || 'unknown';
 
     switch (code) {
-
       /* VALIDATION */
       case ErrorCode.INVALID_PAYLOAD:
         return this.buildInvalidPayloadMessage(context);
@@ -197,9 +196,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     }
   }
 
-  private buildInvalidPayloadMessage(
-    context: Record<string, unknown>,
-  ): string {
+  private buildInvalidPayloadMessage(context: Record<string, unknown>): string {
     const reason = context.reason as string | undefined;
 
     if (reason?.includes('both')) {
@@ -245,7 +242,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
   }
 
   private logStructuredError(log: IStructuredLog): void {
-
     this.logger.error(JSON.stringify(log));
 
     const contextLines = this.buildContextLines(log.context);

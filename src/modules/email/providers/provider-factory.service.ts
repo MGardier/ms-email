@@ -5,8 +5,9 @@ import { RpcException } from '@nestjs/microservices';
 import { ErrorCode } from 'src/common/enums/error-codes.enum';
 import { IEmailProvider } from './email-provider.interface';
 import { MailpitProvider } from './mailpit.provider';
-
-export type EmailProviderType = 'mailpit' | 'mailjet' | 'resend';
+import { MailjetProvider } from './mailjet.provider';
+import { ResendProvider } from './resend.provider';
+import { EMAIL_PROVIDERS, EmailProviderType } from './provider.constants';
 
 @Injectable()
 export class ProviderFactoryService {
@@ -16,16 +17,20 @@ export class ProviderFactoryService {
   constructor(
     private readonly configService: ConfigService,
     private readonly mailpitProvider: MailpitProvider,
+    private readonly mailjetProvider: MailjetProvider,
+    private readonly resendProvider: ResendProvider,
   ) {
     this.providers = new Map<EmailProviderType, IEmailProvider>([
-      ['mailpit', this.mailpitProvider],
+      [EMAIL_PROVIDERS.MAILPIT, this.mailpitProvider],
+      [EMAIL_PROVIDERS.MAILJET, this.mailjetProvider],
+      [EMAIL_PROVIDERS.RESEND, this.resendProvider],
     ]);
   }
 
   getProvider(): IEmailProvider {
     const providerName = this.configService.get<EmailProviderType>(
       'EMAIL_PROVIDER',
-      'mailpit',
+      EMAIL_PROVIDERS.MAILPIT,
     );
 
     const provider = this.providers.get(providerName);

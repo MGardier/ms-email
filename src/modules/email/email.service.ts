@@ -73,7 +73,6 @@ export class EmailService {
       });
     }
 
-    
     await this.emailRepository.createLog(
       emailId,
       'sent',

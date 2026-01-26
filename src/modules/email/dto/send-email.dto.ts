@@ -12,7 +12,6 @@ import {
   Validate,
 } from 'class-validator';
 
-
 export class SendEmailDto {
   @IsArray()
   @ArrayNotEmpty()
