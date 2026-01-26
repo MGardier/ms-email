@@ -8,7 +8,10 @@ import {
   IsObject,
   IsOptional,
   IsString,
+  MaxLength,
+  Validate,
 } from 'class-validator';
+
 
 export class SendEmailDto {
   @IsArray()
@@ -32,6 +35,7 @@ export class SendEmailDto {
 
   @IsString()
   @IsOptional()
+  @MaxLength(500000, { message: 'HTML content exceeds maximum allowed size' })
   html?: string;
 
   @IsInt()

@@ -20,26 +20,24 @@ export class AllExceptionsFilter implements ExceptionFilter {
   private readonly logger = new Logger(AllExceptionsFilter.name);
   private readonly serviceName = 'ms-email';
 
-  // Note: ACK/NACK is handled by RabbitMqAckInterceptor, not here
   catch(
     exception: unknown,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _host: ArgumentsHost,
   ): Observable<IRpcErrorResponse> {
     if (exception instanceof RpcException) {
-      return this.__handleRpcException(exception);
+      return this.handleRpcException(exception);
     }
 
     if (exception instanceof BadRequestException) {
-      return this.__handleValidationException(exception);
+      return this.handleValidationException(exception);
     }
 
-    return this.__handleUnknownException(exception);
+    return this.handleUnknownException(exception);
   }
 
   /** EXCEPTION HANDLERS */
 
-  private __handleRpcException(
+  private handleRpcException(
     exception: RpcException,
   ): Observable<IRpcErrorResponse> {
     const error = exception.getError() as {
@@ -49,10 +47,10 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const context = error?.context ?? {};
     const code = error?.code ?? ErrorCode.UNKNOWN_ERROR;
 
-    const message = this.__buildContextualMessage(code, context);
-    const logContext = this.__extractLogContext(context);
+    const message = this.buildContextualMessage(code, context);
+    const logContext = this.extractLogContext(context);
 
-    this.__logStructuredError({
+    this.logStructuredError({
       level: 'error',
       timestamp: new Date().toISOString(),
       service: this.serviceName,
@@ -63,11 +61,11 @@ export class AllExceptionsFilter implements ExceptionFilter {
     });
 
     return throwError(
-      () => new RpcException(this.__formatException(message, code, context)),
+      () => new RpcException(this.formatException(message, code, context)),
     );
   }
 
-  private __handleValidationException(
+  private handleValidationException(
     exception: BadRequestException,
   ): Observable<IRpcErrorResponse> {
     const response = exception.getResponse() as { message: string | string[] };
@@ -80,9 +78,9 @@ export class AllExceptionsFilter implements ExceptionFilter {
       operation: 'validation',
       errors,
     };
-    const message = this.__buildContextualMessage(code, context);
+    const message = this.buildContextualMessage(code, context);
 
-    this.__logStructuredError({
+    this.logStructuredError({
       level: 'error',
       timestamp: new Date().toISOString(),
       service: this.serviceName,
@@ -93,11 +91,11 @@ export class AllExceptionsFilter implements ExceptionFilter {
     });
 
     return throwError(
-      () => new RpcException(this.__formatException(message, code, context)),
+      () => new RpcException(this.formatException(message, code, context)),
     );
   }
 
-  private __handleUnknownException(
+  private handleUnknownException(
     exception: unknown,
   ): Observable<IRpcErrorResponse> {
     const error =
@@ -107,9 +105,9 @@ export class AllExceptionsFilter implements ExceptionFilter {
       operation: 'unknown',
       error: error.message,
     };
-    const message = this.__buildContextualMessage(code, context);
+    const message = this.buildContextualMessage(code, context);
 
-    this.__logStructuredError({
+    this.logStructuredError({
       level: 'error',
       timestamp: new Date().toISOString(),
       service: this.serviceName,
@@ -120,22 +118,23 @@ export class AllExceptionsFilter implements ExceptionFilter {
     });
 
     return throwError(
-      () => new RpcException(this.__formatException(message, code, context)),
+      () => new RpcException(this.formatException(message, code, context)),
     );
   }
 
   /** PRIVATE METHODS */
 
-  private __buildContextualMessage(
+  private buildContextualMessage(
     code: string,
     context: Record<string, unknown>,
   ): string {
     const operation = (context.operation as string) || 'unknown';
 
     switch (code) {
+
       /* VALIDATION */
       case ErrorCode.INVALID_PAYLOAD:
-        return this.__buildInvalidPayloadMessage(context);
+        return this.buildInvalidPayloadMessage(context);
 
       case ErrorCode.VALIDATION_ERROR: {
         const errors = context.errors as string[] | undefined;
@@ -166,6 +165,9 @@ export class AllExceptionsFilter implements ExceptionFilter {
       case ErrorCode.PRISMA_EMAIL_UPDATE_ERROR:
         return `Email update failed: unable to modify email "${context.id}". Prisma error: ${context.prismaError}.`;
 
+      case ErrorCode.PRISMA_EMAIL_LOG_CREATE_ERROR:
+        return `Email log creation failed: unable to create log for email "${context.emailId}". Status: ${context.status}. Prisma error: ${context.prismaError}.`;
+
       /* EMAIL PROVIDER */
       case ErrorCode.PROVIDER_SENDING_FAILED:
         return `Sending failed: provider returned error "${context.error ?? 'unknown'}". Email ID: ${context.emailId ?? 'N/A'}.`;
@@ -195,7 +197,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     }
   }
 
-  private __buildInvalidPayloadMessage(
+  private buildInvalidPayloadMessage(
     context: Record<string, unknown>,
   ): string {
     const reason = context.reason as string | undefined;
@@ -211,7 +213,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     return `Invalid payload: ${reason ?? 'payload format does not match expected schema'}.`;
   }
 
-  private __extractLogContext(
+  private extractLogContext(
     context: Record<string, unknown>,
   ): IStructuredLogContext {
     return {
@@ -226,7 +228,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     };
   }
 
-  private __formatException(
+  private formatException(
     message: string,
     code: string,
     context: Record<string, unknown>,
@@ -242,12 +244,11 @@ export class AllExceptionsFilter implements ExceptionFilter {
     };
   }
 
-  private __logStructuredError(log: IStructuredLog): void {
+  private logStructuredError(log: IStructuredLog): void {
 
     this.logger.error(JSON.stringify(log));
 
-    // Formatted log for console readability
-    const contextLines = this.__buildContextLines(log.context);
+    const contextLines = this.buildContextLines(log.context);
 
     this.logger.error(
       `\n${'═'.repeat(70)}` +
@@ -263,7 +264,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     );
   }
 
-  private __buildContextLines(context: IStructuredLogContext): string {
+  private buildContextLines(context: IStructuredLogContext): string {
     let lines = '';
 
     if (context.recipients?.length) {

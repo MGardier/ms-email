@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { RpcException } from '@nestjs/microservices';
-import { Email, Prisma } from '@prisma/client';
+import { Email, EmailStatus, LogLevel, EmailProvider, Prisma } from '@prisma/client';
 
 import { ErrorCode } from 'src/common/enums/error-codes.enum';
 import { UpdateEmailDto } from './dto/update-email.dto';
@@ -66,6 +66,49 @@ export class EmailRepository {
             ...dto,
           },
           id,
+          prismaError: (error as Error).message,
+        },
+      });
+    }
+  }
+
+  async createLog(
+    emailId: string,
+    status: EmailStatus,
+    logLevel: LogLevel,
+    provider?: EmailProvider,
+    providerMessageId?: string,
+    errorDetails?: Record<string, unknown>,
+  ): Promise<void> {
+
+    console.log({
+          emailId,
+          status,
+          logLevel,
+          provider,
+          providerMessageId,
+          errorDetails: errorDetails as Prisma.InputJsonValue,
+          sentAt: status === EmailStatus.sent ? new Date() : null,
+        })
+    try {
+      await this.prismaService.emailLog.create({
+        data: {
+          emailId,
+          status,
+          logLevel,
+          provider,
+          providerMessageId,
+          errorDetails: errorDetails as Prisma.InputJsonValue,
+          sentAt: status === 'sent' ? new Date() : null,
+        },
+      });
+    } catch (error) {
+      throw new RpcException({
+        code: ErrorCode.PRISMA_EMAIL_LOG_CREATE_ERROR,
+        context: {
+          operation: 'email-repository-createLog',
+          emailId,
+          status,
           prismaError: (error as Error).message,
         },
       });

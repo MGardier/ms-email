@@ -1,6 +1,7 @@
 import { Controller, Get } from '@nestjs/common';
 import {
   HealthCheck,
+  HealthCheckResult,
   HealthCheckService,
   PrismaHealthIndicator,
 } from '@nestjs/terminus';
@@ -21,7 +22,7 @@ export class HealthController {
 
   @Get()
   @HealthCheck()
-  check() {
+  check(): Promise<HealthCheckResult> {
     return this.health.check([
       () => this.rabbitMQHealth.isHealthy('rabbitmq'),
       () => this.prismaHealth.pingCheck('database', this.prisma),
@@ -31,13 +32,13 @@ export class HealthController {
 
   @Get('rabbitmq')
   @HealthCheck()
-  checkRabbitMQ() {
+  checkRabbitMQ(): Promise<HealthCheckResult> {
     return this.health.check([() => this.rabbitMQHealth.isHealthy('rabbitmq')]);
   }
 
   @Get('database')
   @HealthCheck()
-  checkDatabase() {
+  checkDatabase(): Promise<HealthCheckResult> {
     return this.health.check([
       () => this.prismaHealth.pingCheck('database', this.prisma),
     ]);
@@ -45,7 +46,7 @@ export class HealthController {
 
   @Get('mailpit')
   @HealthCheck()
-  checkMailpit() {
+  checkMailpit(): Promise<HealthCheckResult> {
     return this.health.check([() => this.mailpitHealth.isHealthy('mailpit')]);
   }
 }

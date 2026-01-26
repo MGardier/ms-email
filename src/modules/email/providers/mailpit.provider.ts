@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
 import { Transporter } from 'nodemailer';
@@ -8,16 +8,17 @@ import {
   IEmailProviderOptions,
   IEmailProviderResult,
 } from './email-provider.interface';
+import { DEFAULTS } from 'src/common/constants/defaults';
 
 @Injectable()
-export class MailpitProvider implements IEmailProvider {
+export class MailpitProvider implements IEmailProvider, OnModuleDestroy {
   private readonly logger = new Logger(MailpitProvider.name);
   private transporter: Transporter;
 
   constructor(private readonly configService: ConfigService) {
     this.transporter = nodemailer.createTransport({
-      host: this.configService.get<string>('MAILPIT_HOST', 'localhost'),
-      port: this.configService.get<number>('MAILPIT_PORT', 1025),
+      host: this.configService.get<string>('MAILPIT_HOST', DEFAULTS.MAILPIT_HOST),
+      port: this.configService.get<number>('MAILPIT_PORT', DEFAULTS.MAILPIT_PORT),
       secure: false,
     });
   }
@@ -57,5 +58,9 @@ export class MailpitProvider implements IEmailProvider {
       );
       return false;
     }
+  }
+
+  onModuleDestroy(): void {
+    this.transporter.close();
   }
 }

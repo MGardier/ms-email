@@ -1,9 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import {
   HealthIndicatorService,
   HealthIndicatorResult,
 } from '@nestjs/terminus';
 import * as amqplib from 'amqplib';
+import { DEFAULTS } from '../constants/defaults';
 
 @Injectable()
 export class RabbitMQHealthIndicator {
@@ -11,12 +13,19 @@ export class RabbitMQHealthIndicator {
 
   constructor(
     private readonly healthIndicatorService: HealthIndicatorService,
+    private readonly configService: ConfigService,
   ) {}
 
   async isHealthy(key: string): Promise<HealthIndicatorResult> {
     const indicator = this.healthIndicatorService.check(key);
-    const url = process.env.RABBITMQ_URL || 'amqp://root:root@localhost:5672';
-    const queue = process.env.RABBITMQ_QUEUE || 'email_queue';
+    const url = this.configService.get<string>(
+      'RABBITMQ_URL',
+      DEFAULTS.RABBITMQ_URL,
+    );
+    const queue = this.configService.get<string>(
+      'RABBITMQ_QUEUE',
+      DEFAULTS.RABBITMQ_QUEUE,
+    );
 
     try {
       const connection = await amqplib.connect(url);

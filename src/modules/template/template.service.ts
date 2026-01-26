@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { RpcException } from '@nestjs/microservices';
 import { join } from 'path';
 import * as fs from 'fs/promises';
@@ -9,19 +10,27 @@ import { TemplateRepository } from './template.repository';
 import { ITemplateVersion } from './types';
 import { SendEmailDto } from '../email/dto/send-email.dto';
 
+interface NodeError extends Error {
+  code?: string;
+}
+
 @Injectable()
 export class TemplateService {
   private readonly logger = new Logger(TemplateService.name);
   private partialsRegistered = false;
 
-  constructor(private readonly templateRepository: TemplateRepository) {}
+  constructor(
+    private readonly templateRepository: TemplateRepository,
+    private readonly configService: ConfigService,
+  ) {}
 
   async buildTemplate(
     payload: SendEmailDto,
     templateVersion: ITemplateVersion,
   ): Promise<string> {
-    await this.__registerPartials();
-    const templatePath = await this.__getPathIfExist(templateVersion.filePath);
+    // Compile partials templates like base-template
+    await this.registerPartials();
+    const templatePath = await this.getPathIfExist(templateVersion.filePath);
 
     if (payload.html) {
       // Compile html content first
@@ -29,12 +38,12 @@ export class TemplateService {
         payload.variables || {},
       );
       // Compile template html with variables second
-      return this.__compileTemplate(templatePath, {
+      return this.compileTemplate(templatePath, {
         htmlContent: compiledHtml,
       });
     }
 
-    return this.__compileTemplate(templatePath, payload.variables || {});
+    return this.compileTemplate(templatePath, payload.variables || {});
   }
 
   async getTemplateVersionById(id: number): Promise<ITemplateVersion> {
@@ -75,12 +84,12 @@ export class TemplateService {
     return templateVersion as ITemplateVersion;
   }
 
-  /** PRIVATE METHOD **/
+  /** PRIVATE METHODS */
 
-  private async __registerPartials(): Promise<void> {
+  private async registerPartials(): Promise<void> {
     if (this.partialsRegistered) return;
 
-    const basePath = this.__getBasePath();
+    const basePath = this.getBasePath();
     const baseTemplate = await fs.readFile(
       join(basePath, 'excluded/base-template.hbs'),
       'utf-8',
@@ -89,23 +98,26 @@ export class TemplateService {
     this.partialsRegistered = true;
   }
 
-  private __getBasePath(): string {
+  private getBasePath(): string {
+    const isProduction =
+      this.configService.get<string>('NODE_ENV') === 'production';
     return join(
       process.cwd(),
-      process.env.NODE_ENV === 'production'
+      isProduction
         ? 'dist/modules/template/pages'
         : 'src/modules/template/pages',
     );
   }
 
-  private async __getPathIfExist(templatePath: string): Promise<string> {
-    const path = this.__getPath(templatePath);
+  private async getPathIfExist(templatePath: string): Promise<string> {
+    const path = this.getPath(templatePath);
     try {
       await fs.access(path);
       return path;
     } catch (error) {
+      const nodeError = error as NodeError;
       throw new RpcException({
-        code: this.__getTemplateErrorCode(error.code),
+        code: this.getTemplateErrorCode(nodeError.code),
         context: {
           operation: 'getPathIfExist',
           path,
@@ -115,8 +127,8 @@ export class TemplateService {
     }
   }
 
-  private __getPath(templatePath: string): string {
-    const basePath = this.__getBasePath();
+  private getPath(templatePath: string): string {
+    const basePath = this.getBasePath();
     const fullPath = join(basePath, templatePath);
 
     if (!fullPath.startsWith(basePath)) {
@@ -133,7 +145,7 @@ export class TemplateService {
     return fullPath;
   }
 
-  private async __compileTemplate(
+  private async compileTemplate(
     templatePath: string,
     variables: Record<string, unknown>,
   ): Promise<string> {
@@ -148,7 +160,7 @@ export class TemplateService {
       throw new RpcException({
         code: ErrorCode.TEMPLATE_UNKNOWN_ERROR,
         context: {
-          operation: 'email-service-compileTemplate',
+          operation: 'template-service-compileTemplate',
           templatePath,
           error: (error as Error).message,
         },
@@ -156,7 +168,7 @@ export class TemplateService {
     }
   }
 
-  private __getTemplateErrorCode(errorCode: string): ErrorCode {
+  private getTemplateErrorCode(errorCode?: string): ErrorCode {
     switch (errorCode) {
       case 'ENOENT':
         return ErrorCode.TEMPLATE_NOT_FOUND;
