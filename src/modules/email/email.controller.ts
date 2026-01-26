@@ -1,35 +1,34 @@
 import { Controller, Logger } from '@nestjs/common';
-import {
-  Ctx,
-  MessagePattern,
-  Payload,
-  RmqContext,
-} from '@nestjs/microservices';
+import { MessagePattern, Payload, RpcException } from '@nestjs/microservices';
+
+import { ErrorCode } from 'src/common/enums/error-codes.enum';
 import { EmailService } from './email.service';
 import { SendEmailDto } from './dto/send-email.dto';
-import { DeleteEmailDto } from './dto/delete-email.dto';
+import { TemplateService } from 'src/modules/template/template.service';
+import { ITemplateVersion } from 'src/modules/template/types';
 
 @Controller()
 export class EmailController {
   private readonly logger = new Logger(EmailController.name);
 
-  constructor(private readonly emailService: EmailService) {}
+  constructor(
+    private readonly emailService: EmailService,
+    private readonly templateService: TemplateService,
+  ) {}
 
+  
   @MessagePattern('send_email')
-  async handleSendEmail(
-    @Payload() data: SendEmailDto,
-    @Ctx() context: RmqContext,
-  ) {
-    const channel = context.getChannelRef();
-    const originalMsg = context.getMessage();
+  async handleSendEmail(@Payload() data: SendEmailDto) {
+    this.logger.log(
+      `[RECEIVED] send_email | recipients: ${data.recipients.join(', ')} | subject: "${data.subject}" | origin: ${data.origin}`,
+    );
 
-    this.logger.log('Received send_email message');
+    const templateVersion = await this.__validateTemplatePayload(data);
+    const result = await this.emailService.sendMail(data, templateVersion);
 
-    const result = await this.emailService.sendMail(data);
-
-    // Manual ACK - NestJS with noAck: false requires explicit acknowledgment
-    channel.ack(originalMsg);
-    this.logger.log('Email sent successfully');
+    this.logger.log(
+      `[SUCCESS] Email sent | id: ${result.id} | messageId: ${result.providerEmailId || 'N/A'}`,
+    );
 
     return {
       from: 'send_email',
@@ -38,26 +37,40 @@ export class EmailController {
     };
   }
 
-  @MessagePattern('delete_email')
-  async handleDeleteEmail(
-    @Payload() data: DeleteEmailDto,
-    @Ctx() context: RmqContext,
-  ) {
-    const channel = context.getChannelRef();
-    const originalMsg = context.getMessage();
+  private async __validateTemplatePayload(
+    data: SendEmailDto,
+  ): Promise<ITemplateVersion> {
+    const hasHtml = !!data.html;
+    const hasTemplateId = !!data.templateVersionId;
 
-    this.logger.log(`Received delete_email message for id: ${data.id}`);
+    if (hasHtml && hasTemplateId) {
+      throw new RpcException({
+        code: ErrorCode.INVALID_PAYLOAD,
+        context: {
+          operation: 'email-controller-validatePayload',
+          reason: 'Cannot provide both html and templateVersionId',
+          recipients: data.recipients,
+          subject: data.subject,
+        },
+      });
+    }
 
-    const result = await this.emailService.delete(data.id);
+    if (!hasHtml && !hasTemplateId) {
+      throw new RpcException({
+        code: ErrorCode.INVALID_PAYLOAD,
+        context: {
+          operation: 'email-controller-validatePayload',
+          reason: 'Must provide either html or templateVersionId',
+          recipients: data.recipients,
+          subject: data.subject,
+        },
+      });
+    }
 
-    // Manual ACK - NestJS with noAck: false requires explicit acknowledgment
-    channel.ack(originalMsg);
-    this.logger.log('Email deleted successfully');
-
-    return {
-      from: 'delete_email',
-      paramsValue: result,
-      status: 'ok',
-    };
+    if (hasHtml) return this.templateService.getTemplateVersionBySlug('raw');
+    else
+      return this.templateService.getTemplateVersionById(
+        data.templateVersionId,
+      );
   }
 }

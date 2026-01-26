@@ -19,15 +19,8 @@ export class EmailRepository {
       return await this.prismaService.email.create({
         select: this.getSelectColumns(selectColumns),
         data: {
-          recipients: dto.recipients,
-          cc: dto.cc ?? [],
-          bcc: dto.bcc ?? [],
-          subject: dto.subject,
-          html: dto.html,
-          templateVersionId: dto.templateVersionId,
+          ...dto,
           variables: dto.variables as Prisma.InputJsonValue,
-          userId: dto.userId,
-          origin: dto.origin,
           isApproved: dto.isApproved ?? true,
           metadata: dto.metadata as Prisma.InputJsonValue,
         },
@@ -72,29 +65,6 @@ export class EmailRepository {
           data: {
             ...dto,
           },
-          id,
-          prismaError: (error as Error).message,
-        },
-      });
-    }
-  }
-
-  async delete(
-    id: string,
-    selectColumns?: (keyof Email)[],
-  ): Promise<Partial<Email>> {
-    try {
-      return await this.prismaService.email.delete({
-        select: this.getSelectColumns(selectColumns),
-        where: {
-          id,
-        },
-      });
-    } catch (error) {
-      throw new RpcException({
-        code: ErrorCode.PRISMA_EMAIL_DELETE_ERROR,
-        context: {
-          operation: 'email-repository-delete',
           id,
           prismaError: (error as Error).message,
         },

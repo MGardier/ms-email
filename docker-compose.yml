@@ -15,8 +15,6 @@ services:
       timeout: 5s
       start_period: 30s
       retries: 5
-    networks:
-      - app-internal
 
   postgres:
     image: postgres:17-alpine
@@ -35,8 +33,6 @@ services:
       timeout: 5s
       start_period: 30s
       retries: 5
-    networks:
-      - db-internal
 
   pgadmin:
     image: dpage/pgadmin4:8.14
@@ -58,14 +54,21 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    networks:
-      - db-internal
-
-networks:
-  db-internal:
-    driver: bridge
-  app-internal:
-    driver: bridge
+  mailpit:
+      image: axllent/mailpit:v1.28
+      restart: unless-stopped
+      profiles: ["dev"]
+      ports:
+        - '1025:1025' # SMTP
+        - '8025:8025' # Web UI
+      environment:
+        MP_SMTP_AUTH_ACCEPT_ANY: 1
+        MP_SMTP_AUTH_ALLOW_INSECURE: 1
+      healthcheck:
+        test: ['CMD', 'wget', '-q', '--spider', 'http://localhost:8025/api/v1/info']
+        interval: 10s
+        timeout: 5s
+        retries: 3
 
 volumes:
   postgres_data:

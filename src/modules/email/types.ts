@@ -1,6 +1,6 @@
 export interface IEmailSendResult {
   id: string;
-  providerMessageId?: string;
+  providerEmailId?: string;
 }
 
 export interface IEmailContext {
