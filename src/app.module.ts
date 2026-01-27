@@ -1,19 +1,20 @@
 import { Module } from '@nestjs/common';
-import { EmailModule } from './email/email.module';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from 'prisma/prisma.module';
-import { TemplateModule } from './template/template.module';
-import { TemplateService } from './template/template.service';
+
+import { EmailModule } from 'src/modules/email/email.module';
+import { TemplateModule } from 'src/modules/template/template.module';
+import { HealthModule } from './common/health/health.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    PrismaModule,
+    HealthModule,
     EmailModule,
     TemplateModule,
   ],
-  controllers: [],
-  providers: [PrismaModule, ConfigModule, TemplateService],
 })
 export class AppModule {}

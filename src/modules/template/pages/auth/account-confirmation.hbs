@@ -1,0 +1,22 @@
+{{#> base-template title="Confirmez votre compte CvTools"}}
+  {{#*inline "body"}}
+    <h1 class="main-title">Bonjour {{userName}} !</h1>
+
+    <p class="main-description">
+      Merci de nous avoir rejoint ! Cliquez sur le bouton ci-dessous pour
+      confirmer votre adresse email et accéder à votre compte.
+    </p>
+    <a href="{{confirmationLink}}" class="cta-button">
+      Confirmer mon compte
+    </a>
+
+    <div class="divider"></div>
+
+    <div class="security-info">
+      <p>
+        Ce lien expire dans 24 heures. Si vous n'avez pas créé de compte,
+        ignorez cet email.
+      </p>
+    </div>
+  {{/inline}}
+{{/base-template}}

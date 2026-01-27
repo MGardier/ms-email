@@ -3,35 +3,102 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+// ============================================================================
+// ENUMS
+// ============================================================================
+
 enum EmailStatus {
-  IS_PENDING
-  SEND
-  ERROR
+  pending
+  sent
+  failed
 }
 
-enum Services {
-  NODEJS_MAILER
+enum LogLevel {
+  info
+  warning
+  error
 }
 
-
-model email {
-  id                  Int                @id @default(autoincrement())
-  createdAt           DateTime           @default(now())
-  sendAt              DateTime?          
-  receivers           Json
-  sender              String              @db.VarChar(150)
-  subject             String              @db.VarChar(150)
-  templatePath        String
-  templateVariables   Json?
-  cc                  Json?            
-  bcc                 Json?             
-  gatewayEmailId      Int?              
-  status EmailStatus
-  services Services
+enum EmailProvider {
+  resend
+  mailjet
+  mailpit
 }
 
+// ============================================================================
+// MODELS
+// ============================================================================
 
+model Email {
+  id                  String                  @id @default(uuid()) @db.Uuid
+  recipients          String[]                @db.VarChar(255)
+  cc                  String[]                @db.VarChar(255)
+  bcc                 String[]                @db.VarChar(255)
+  subject             String                  @db.VarChar(255)
+  html                String?                 @db.Text
+  templateVersionId   Int?                    @map("template_version_id")
+  variables           Json?                   @db.JsonB
+  userId              Int                     @map("user_id")
+  origin              String                  @db.VarChar(255)
+  isApproved          Boolean                 @default(true) @map("is_approved")
+  metadata            Json?                   @db.JsonB
+  createdAt           DateTime                @default(now()) @map("created_at")
+  scheduledAt         DateTime?               @map("scheduled_at")
+
+  // Relations
+  templateVersion     EmailTemplateVersion?   @relation(fields: [templateVersionId], references: [id])
+  logs                EmailLog[]
+
+  @@map("email")
+}
+
+model EmailLog {
+  id                  Int                     @id @default(autoincrement())
+  emailId             String                  @map("email_id") @db.Uuid
+  status              EmailStatus
+  logLevel            LogLevel                @map("log_level")
+  provider            EmailProvider?
+  providerMessageId   String?                 @map("provider_message_id") @db.VarChar(255)
+  errorDetails        Json?                   @map("error_details") @db.JsonB
+  createdAt           DateTime                @default(now()) @map("created_at")
+  sentAt              DateTime?               @map("sent_at")
+
+  // Relations
+  email               Email                   @relation(fields: [emailId], references: [id], onDelete: Cascade)
+
+  @@map("email_log")
+}
+
+model EmailTemplate {
+  id                  Int                     @id @default(autoincrement())
+  slug                String                  @unique @db.VarChar(100)
+  displayName         String                  @map("display_name") @db.VarChar(150)
+  description         String?                 @db.Text
+
+  // Relations
+  versions            EmailTemplateVersion[]
+
+  @@map("email_template")
+}
+
+model EmailTemplateVersion {
+  id                  Int                     @id @default(autoincrement())
+  templateId          Int                     @map("template_id")
+  filePath            String                  @map("file_path") @db.VarChar(255)
+  versionNumber       Int                     @map("version_number")
+  isEnabled           Boolean                 @default(false) @map("is_enabled")
+  versionNotes        String?                 @map("version_notes") @db.Text
+  createdAt           DateTime                @default(now()) @map("created_at")
+  updatedAt           DateTime                @default(now()) @updatedAt @map("updated_at")
+
+  // Relations
+  template            EmailTemplate           @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  emails              Email[]
+
+  @@map("email_template_version")
+}
 
