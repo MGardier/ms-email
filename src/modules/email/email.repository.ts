@@ -86,7 +86,6 @@ export class EmailRepository {
     providerMessageId?: string,
     errorDetails?: Record<string, unknown>,
   ): Promise<void> {
-
     try {
       await this.prismaService.emailLog.create({
         data: {

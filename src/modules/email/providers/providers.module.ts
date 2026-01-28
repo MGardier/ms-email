@@ -5,6 +5,8 @@ import { MailpitProvider } from './mailpit.provider';
 import { MailjetProvider } from './mailjet.provider';
 import { ResendProvider } from './resend.provider';
 import { ProviderFactoryService } from './provider-factory.service';
+import { RetryService } from './retry.service';
+import { ProviderOrchestratorService } from './provider-orchestrator.service';
 
 @Module({
   imports: [ConfigModule],
@@ -13,7 +15,9 @@ import { ProviderFactoryService } from './provider-factory.service';
     MailjetProvider,
     ResendProvider,
     ProviderFactoryService,
+    RetryService,
+    ProviderOrchestratorService,
   ],
-  exports: [ProviderFactoryService],
+  exports: [ProviderFactoryService, ProviderOrchestratorService],
 })
 export class ProvidersModule {}
