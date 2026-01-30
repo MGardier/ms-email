@@ -1,8 +1,9 @@
 import { Controller, Logger } from '@nestjs/common';
-import { MessagePattern, Payload } from '@nestjs/microservices';
+import { EventPattern, MessagePattern, Payload } from '@nestjs/microservices';
 
 import { EmailService } from './email.service';
 import { SendEmailDto } from './dto/send-email.dto';
+import { IEmailSendResult } from './types';
 
 @Controller()
 export class EmailController {
@@ -11,9 +12,35 @@ export class EmailController {
   constructor(private readonly emailService: EmailService) {}
 
   @MessagePattern('send_email')
-  async handleSendEmail(@Payload() data: SendEmailDto) {
+  async sendEmail(@Payload() data: SendEmailDto) {
+    const result = await this.processSendEmail(data, 'send_email');
+
+    return {
+      from: 'send_email',
+      paramsValue: result,
+      status: 'ok',
+    };
+  }
+
+  @EventPattern('send_email_async')
+  async sendEmailAsync(@Payload() data: SendEmailDto): Promise<void> {
+    try {
+      await this.processSendEmail(data, 'send_email_async');
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+
+      this.logger.error(
+        `[FAILED] send_email_async | recipients: ${data.recipients.join(', ')} | userId: ${data.userId} | origin: ${data.origin} | error: ${errorMessage}`,
+      );
+    }
+  }
+
+  private async processSendEmail(
+    data: SendEmailDto,
+    pattern: string,
+  ): Promise<IEmailSendResult> {
     this.logger.log(
-      `[RECEIVED] send_email | recipients: ${data.recipients.join(', ')} | userId: ${data.userId} | origin: ${data.origin}`,
+      `[RECEIVED] ${pattern} | recipients: ${data.recipients.join(', ')} | userId: ${data.userId} | origin: ${data.origin}`,
     );
 
     const result = await this.emailService.sendMail(data);
@@ -22,10 +49,6 @@ export class EmailController {
       `[SUCCESS] Email sent | id: ${result.id} | messageId: ${result.providerEmailId || 'N/A'}`,
     );
 
-    return {
-      from: 'send_email',
-      paramsValue: result,
-      status: 'ok',
-    };
+    return result;
   }
 }
