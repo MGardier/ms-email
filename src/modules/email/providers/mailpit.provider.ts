@@ -7,7 +7,7 @@ import {
   IEmailProvider,
   IEmailProviderOptions,
   IEmailProviderResult,
-} from './email-provider.interface';
+} from '../types';
 import { DEFAULTS } from 'src/common/constants/defaults';
 
 @Injectable()

@@ -18,7 +18,8 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "test:nats": "ts-node test/nats-tester.ts"
+    "test:nats": "ts-node test/nats-tester.ts",
+    "db:setup": "pnpm prisma db push && pnpm prisma db seed && pnpm prisma generate"
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"
@@ -42,7 +43,8 @@
     "nodemailer": "^6.10.0",
     "reflect-metadata": "^0.2.0",
     "resend": "^6.8.0",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",
@@ -56,7 +58,7 @@
     "@types/supertest": "^6.0.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
-    "eslint": "^8.0.0",
+    "eslint": "^8.57.1",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-prettier": "^5.0.0",
     "jest": "^29.7.0",

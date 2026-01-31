@@ -1,20 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { RpcException } from '@nestjs/microservices';
 import { EmailProvider } from '@prisma/client';
 
-import { ErrorCode } from 'src/common/enums/error-codes.enum';
 import { EmailRepository } from './email.repository';
 import { SendEmailDto } from './dto/send-email.dto';
 import { TemplateService } from 'src/modules/template/template.service';
-import { ProviderFactoryService } from './providers/provider-factory.service';
-import { IEmailSendResult } from './types';
-import {
-  IEmailProviderOptions,
-  IEmailProviderResult,
-} from './providers/email-provider.interface';
+import { ProviderOrchestratorService } from './providers/provider-orchestrator.service';
+import { IEmailSendResult,IEmailProviderOptions,  IOrchestratorResult, } from './types';
+
 import { ITemplateVersion } from 'src/modules/template/types';
-import { DEFAULTS } from 'src/common/constants/defaults';
+import { RpcException } from '@nestjs/microservices';
+import { ErrorCode } from 'src/common/enums/error-codes.enum';
 
 @Injectable()
 export class EmailService {
@@ -24,7 +20,7 @@ export class EmailService {
     private readonly configService: ConfigService,
     private readonly emailRepository: EmailRepository,
     private readonly templateService: TemplateService,
-    private readonly providerFactory: ProviderFactoryService,
+    private readonly providerOrchestrator: ProviderOrchestratorService,
   ) {}
 
   async sendMail(payload: SendEmailDto): Promise<IEmailSendResult> {
@@ -37,13 +33,9 @@ export class EmailService {
     // 1. Create email BEFORE sending (for tracability)
     const email = await this.emailRepository.create(payload, ['id']);
     const emailId = email.id as string;
-    const provider = this.configService.get<EmailProvider>(
-      'EMAIL_PROVIDER',
-      DEFAULTS.EMAIL_PROVIDER as EmailProvider,
-    );
 
-    // 2. Send email
-    const providerResult = await this.send({
+    // 2. Send email with retry and fallback
+    const orchestratorResult = await this.send({
       to: payload.recipients,
       subject: payload.subject,
       html,
@@ -52,38 +44,31 @@ export class EmailService {
       bcc: payload.bcc,
     });
 
-    // 3. Create log based on result
-    if (!providerResult.success) {
-      await this.emailRepository.createLog(
-        emailId,
-        'failed',
-        'error',
-        provider,
-        undefined,
-        { error: providerResult.error },
-      );
+    // 3. Log the result
+    const provider = orchestratorResult.provider as EmailProvider;
 
-      throw new RpcException({
-        code: ErrorCode.PROVIDER_SENDING_FAILED,
-        context: {
-          operation: 'email-service-sendMail',
-          emailId,
-          error: providerResult.error,
-        },
-      });
+    if (orchestratorResult.usedFallback) {
+      this.logger.warn(
+        `Email ${emailId} sent via fallback provider: ${provider}`,
+      );
     }
+
+    // TODO: Improve to create log even in error know or unknow
 
     await this.emailRepository.createLog(
       emailId,
       'sent',
-      'info',
+      orchestratorResult.usedFallback ? 'warning' : 'info',
       provider,
-      providerResult.emailId,
+      orchestratorResult.emailId,
+      orchestratorResult.allErrors.length > 0
+        ? { previousErrors: orchestratorResult.allErrors }
+        : undefined,
     );
 
     return {
       id: emailId,
-      providerEmailId: providerResult.emailId,
+      providerEmailId: orchestratorResult.emailId,
     };
   }
 
@@ -130,8 +115,7 @@ export class EmailService {
 
   private async send(
     options: IEmailProviderOptions,
-  ): Promise<IEmailProviderResult> {
-    const provider = this.providerFactory.getProvider();
-    return provider.sendMail(options);
+  ): Promise<IOrchestratorResult> {
+    return this.providerOrchestrator.sendWithRetryAndFallback(options);
   }
 }
