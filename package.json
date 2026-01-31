@@ -18,7 +18,8 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "test:nats": "ts-node test/nats-tester.ts"
+    "test:nats": "ts-node test/nats-tester.ts",
+    "db:setup": "pnpm prisma db push && pnpm prisma db seed && pnpm prisma generate"
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"

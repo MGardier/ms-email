@@ -53,6 +53,8 @@ export class EmailService {
       );
     }
 
+    // TODO: Improve to create log even in error know or unknow
+
     await this.emailRepository.createLog(
       emailId,
       'sent',
