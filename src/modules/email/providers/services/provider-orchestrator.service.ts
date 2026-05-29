@@ -6,7 +6,7 @@ import {
   IEmailProvider,
   IEmailProviderOptions,
   IOrchestratorResult, IProviderAttemptResult
-} from '../types';
+} from 'src/modules/email/types';
 import { ProviderFactoryService } from './provider-factory.service';
 import { RetryService } from './retry.service';
 

@@ -3,17 +3,17 @@ import { ConfigService } from '@nestjs/config';
 import { RpcException } from '@nestjs/microservices';
 
 import { ErrorCode } from 'src/common/enums/error-codes.enum';
-import { IEmailProvider } from '../types';
-import { MailpitProvider } from './mailpit.provider';
-import { MailjetProvider } from './mailjet.provider';
-import { ResendProvider } from './resend.provider';
+import { IEmailProvider } from 'src/modules/email/types';
+import { MailpitProvider } from 'src/modules/email/providers/clients/mailpit.provider';
+import { MailjetProvider } from 'src/modules/email/providers/clients/mailjet.provider';
+import { ResendProvider } from 'src/modules/email/providers/clients/resend.provider';
 import {
   PRODUCTION_PROVIDERS,
   TEST_PROVIDERS,
   ProductionProviderType,
   TestProviderType,
   EmailProviderType,
-} from './provider.constants';
+} from 'src/modules/email/providers/provider.constants';
 
 @Injectable()
 export class ProviderFactoryService {

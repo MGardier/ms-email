@@ -6,7 +6,7 @@ import {
   IEmailProvider,
   IEmailProviderOptions,
   IEmailProviderResult,
-} from '../types';
+} from 'src/modules/email/types';
 
 @Injectable()
 export class ResendProvider implements IEmailProvider {

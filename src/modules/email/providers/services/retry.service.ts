@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DEFAULTS } from 'src/common/constants/defaults';
-import { IRetryConfig, IRetryResult } from '../types';
+import { IRetryConfig, IRetryResult } from 'src/modules/email/types';
 
 
 @Injectable()
