@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Client } from 'node-mailjet';
-import { IEmailProvider, IEmailProviderOptions, IEmailProviderResult, IMailjetMessageResponse } from '../types';
+import { IEmailProvider, IEmailProviderOptions, IEmailProviderResult, IMailjetMessageResponse } from 'src/modules/email/types';
 
 @Injectable()
 export class MailjetProvider implements IEmailProvider {

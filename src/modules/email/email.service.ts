@@ -5,7 +5,7 @@ import { EmailProvider } from '@prisma/client';
 import { EmailRepository } from './email.repository';
 import { SendEmailDto } from './dto/send-email.dto';
 import { TemplateService } from 'src/modules/template/template.service';
-import { ProviderOrchestratorService } from './providers/provider-orchestrator.service';
+import { ProviderOrchestratorService } from './providers/services/provider-orchestrator.service';
 import { IEmailSendResult,IEmailProviderOptions,  IOrchestratorResult, } from './types';
 
 import { ITemplateVersion } from 'src/modules/template/types';

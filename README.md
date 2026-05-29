@@ -86,28 +86,57 @@ $ docker compose down -v
 
 ```
 src/
+├── main.ts                              # HTTP (health) + RabbitMQ microservice
+├── app.module.ts
+│
 ├── modules/
 │   ├── email/
-│   │   ├── dto/                   # DTOs (validation)
-│   │   ├── types.ts               # Module-specific interfaces/types
+│   │   ├── dto/
+│   │   ├── providers/
+│   │   │   ├── clients/                 # Third-party integrations
+│   │   │   │   ├── resend.provider.ts
+│   │   │   │   ├── mailjet.provider.ts
+│   │   │   │   └── mailpit.provider.ts  # Test provider
+|   |   |   |
+│   │   │   ├── services/                # Selection, fallback, retry
+|   |   |   |   |
+│   │   │   │   ├── provider-factory.service.ts
+│   │   │   │   ├── provider-orchestrator.service.ts
+│   │   │   │   └── retry.service.ts
+│   │   │   ├── provider.constants.ts
+│   │   │   └── providers.module.ts
+│   │   ├── types.ts
 │   │   ├── email.controller.ts
 │   │   ├── email.service.ts
 │   │   ├── email.repository.ts
 │   │   └── email.module.ts
 │   │
 │   └── template/
+│       ├── dto/
+│       ├── pages/                       # Handlebars templates
+│       │   ├── auth/
+│       │   └── excluded/                # Partials (not rendered)
 │       ├── types.ts
+│       ├── template.controller.ts
 │       ├── template.service.ts
-│       ├── template.module.ts
-│       └── pages/                 # Email templates (Handlebars)
+│       ├── template.repository.ts
+│       └── template.module.ts
 │
-├── common/
-│   ├── filters/                   # Global exception filters
-│   ├── enums/                     # Error codes & status enums
-│   └── types/                     # Shared type definitions
-│
-├── app.module.ts
-└── main.ts
+└── common/                              # Cross-cutting infrastructure
+    ├── config/
+    ├── constants/
+    ├── enums/
+    ├── filters/
+    ├── health/
+    ├── interceptors/
+    └── types/
+
+prisma/                                  # Prisma ORM (project root)
+├── schema.prisma
+├── migrations/
+├── prisma.module.ts
+├── prisma.service.ts
+└── seed.ts
 ```
 
 ---

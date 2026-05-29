@@ -1,4 +1,4 @@
-import { DEFAULTS } from '../constants/defaults';
+import { DEFAULTS } from 'src/common/constants/defaults';
 
 /**
  * Builds the RabbitMQ connection URL from its individual components.
