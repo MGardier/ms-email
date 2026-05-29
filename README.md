@@ -4,7 +4,7 @@
 
 # ms-email
 
-NestJS microservice for sending emails via NATS.
+NestJS microservice for sending emails via RabbitMQ.
 
 ## Description
 
@@ -33,7 +33,45 @@ $ pnpx prisma migrate dev
 $ pnpm run start:dev
 ```
 
+## Docker
 
+The project ships a `docker-compose.yml` with the following services:
+
+| Service | Profile | Ports | Description |
+|---------|---------|-------|-------------|
+| `rabbitmq` | default | `5672` (AMQP), `15672` (management UI) | Message broker |
+| `postgres` | default | `5432` | PostgreSQL 17 database |
+| `pgadmin` | `dev` | `5050` (web UI) | PostgreSQL admin interface |
+| `mailpit` | `dev` | `1025` (SMTP), `8025` (web UI) | Local SMTP server for email testing |
+
+> Set the required variables in your `.env` file before starting (at least `POSTGRES_PASSWORD` and `PGADMIN_PASSWORD`).
+
+```bash
+# Start the core services (rabbitmq + postgres)
+$ docker compose up -d
+
+# Start everything including dev tools (pgadmin + mailpit)
+$ docker compose --profile dev up -d
+
+# Start a single service
+$ docker compose up -d postgres
+
+# Check the status of the services
+$ docker compose ps
+
+# Follow the logs (all services or a specific one)
+$ docker compose logs -f
+$ docker compose logs -f postgres
+
+# Stop the services (containers are kept)
+$ docker compose stop
+
+# Stop and remove the containers
+$ docker compose down
+
+# Stop, remove the containers AND delete the volumes (data loss)
+$ docker compose down -v
+```
 
 ## Configuration
 
@@ -88,9 +126,9 @@ src/
 ### Code Flow
 
 ```
-NATS Message → Controller → Service → Repository → Database
-                    ↓           ↓
-                  DTO      Interface
+RabbitMQ Message → Controller → Service → Repository → Database
+                       ↓           ↓
+                     DTO      Interface
 ```
 
 ---
@@ -186,7 +224,7 @@ refactor(email): simplify error handling logic
 
 ```bash
 # Install microservices
-pnpm i --save @nestjs/microservices nats
+pnpm i --save @nestjs/microservices amqplib amqp-connection-manager
 ```
 
 ```typescript
@@ -195,10 +233,14 @@ pnpm i --save @nestjs/microservices nats
   imports: [
     ClientsModule.register([
       {
-        name: 'NATS_TRANSPORT',
-        transport: Transport.NATS,
+        name: 'RABBITMQ_TRANSPORT',
+        transport: Transport.RMQ,
         options: {
-          servers: [`nats://${process.env.NATS_DNS}:${process.env.NATS_PORT}`],
+          urls: [process.env.RABBITMQ_URL],
+          queue: process.env.RABBITMQ_QUEUE || 'email_queue',
+          queueOptions: {
+            durable: true,
+          },
         },
       },
     ]),
@@ -206,18 +248,21 @@ pnpm i --save @nestjs/microservices nats
 })
 
 // In your service
-@Inject('NATS_TRANSPORT') private natsClient: ClientProxy;
+@Inject('RABBITMQ_TRANSPORT') private rabbitClient: ClientProxy;
 
-// Call the microservice
-await firstValueFrom(this.natsClient.send('email.send', payload));
+// Send a message (request/response)
+await firstValueFrom(this.rabbitClient.send('send_email', payload));
+
+// Emit an event (fire-and-forget)
+this.rabbitClient.emit('send_email_async', payload);
 ```
 
 ### Available Message Patterns
 
-| Pattern | Description | Payload |
-|---------|-------------|---------|
-| `email.send` | Send an email | `SendEmailDto` |
-| `email.delete` | Delete an email | `DeleteEmailDto` |
+| Pattern | Type | Description | Payload |
+|---------|------|-------------|---------|
+| `send_email` | `MessagePattern` (request/response) | Send an email and return the result | `SendEmailDto` |
+| `send_email_async` | `EventPattern` (fire-and-forget) | Send an email without waiting for the result | `SendEmailDto` |
 
 ---
 

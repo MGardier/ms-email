@@ -33,6 +33,7 @@
     "@nestjs/microservices": "^10.4.15",
     "@nestjs/platform-express": "^10.0.0",
     "@nestjs/terminus": "^11.0.0",
+    "@nestjs/throttler": "^6.5.0",
     "@prisma/client": "6.5.0",
     "amqplib": "^0.10.9",
     "class-transformer": "^0.5.1",

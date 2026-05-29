@@ -6,6 +6,7 @@ import {
 } from '@nestjs/terminus';
 import * as amqplib from 'amqplib';
 import { DEFAULTS } from '../constants/defaults';
+import { buildRabbitmqUrl } from '../config/rabbitmq-url';
 
 @Injectable()
 export class RabbitMQHealthIndicator {
@@ -18,10 +19,7 @@ export class RabbitMQHealthIndicator {
 
   async isHealthy(key: string): Promise<HealthIndicatorResult> {
     const indicator = this.healthIndicatorService.check(key);
-    const url = this.configService.get<string>(
-      'RABBITMQ_URL',
-      DEFAULTS.RABBITMQ_URL,
-    );
+    const url = buildRabbitmqUrl();
     const queue = this.configService.get<string>(
       'RABBITMQ_QUEUE',
       DEFAULTS.RABBITMQ_QUEUE,
