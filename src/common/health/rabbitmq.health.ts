@@ -5,8 +5,8 @@ import {
   HealthIndicatorResult,
 } from '@nestjs/terminus';
 import * as amqplib from 'amqplib';
-import { DEFAULTS } from '../constants/defaults';
-import { buildRabbitmqUrl } from '../config/rabbitmq-url';
+import { DEFAULTS } from 'src/common/constants/defaults';
+import { buildRabbitmqUrl } from 'src/common/config/rabbitmq-url';
 
 @Injectable()
 export class RabbitMQHealthIndicator {

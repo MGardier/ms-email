@@ -8,7 +8,7 @@ import * as Handlebars from 'handlebars';
 import { ErrorCode } from 'src/common/enums/error-codes.enum';
 import { TemplateRepository } from './template.repository';
 import { ITemplateVersion } from './types';
-import { SendEmailDto } from '../email/dto/send-email.dto';
+import { SendEmailDto } from 'src/modules/email/dto/send-email.dto';
 
 interface NodeError extends Error {
   code?: string;

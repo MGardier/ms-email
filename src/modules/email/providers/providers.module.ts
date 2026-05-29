@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
-import { MailpitProvider } from './mailpit.provider';
-import { MailjetProvider } from './mailjet.provider';
-import { ResendProvider } from './resend.provider';
-import { ProviderFactoryService } from './provider-factory.service';
-import { RetryService } from './retry.service';
-import { ProviderOrchestratorService } from './provider-orchestrator.service';
+import { MailpitProvider } from './clients/mailpit.provider';
+import { MailjetProvider } from './clients/mailjet.provider';
+import { ResendProvider } from './clients/resend.provider';
+import { ProviderFactoryService } from './services/provider-factory.service';
+import { RetryService } from './services/retry.service';
+import { ProviderOrchestratorService } from './services/provider-orchestrator.service';
 
 @Module({
   imports: [ConfigModule],

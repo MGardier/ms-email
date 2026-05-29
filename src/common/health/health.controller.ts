@@ -6,7 +6,7 @@ import {
   PrismaHealthIndicator,
 } from '@nestjs/terminus';
 
-import { PrismaService } from '../../../prisma/prisma.service';
+import { PrismaService } from 'prisma/prisma.service';
 import { RabbitMQHealthIndicator } from './rabbitmq.health';
 import { MailpitHealthIndicator } from './mailpit.health';
 
