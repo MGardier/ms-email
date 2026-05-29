@@ -179,7 +179,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
       /* RABBITMQ */
       case ErrorCode.RABBITMQ_CONNECTION_FAILED:
-        return `RabbitMQ connection failed: unable to establish connection to broker. Check RABBITMQ_URL.`;
+        return `RabbitMQ connection failed: unable to establish connection to broker. Check RabbitMQ connection settings (host/port/credentials).`;
 
       case ErrorCode.RABBITMQ_CHANNEL_ERROR:
         return `RabbitMQ channel error: communication channel encountered an error.`;

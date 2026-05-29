@@ -5,6 +5,7 @@ import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { RabbitMqAckInterceptor } from './common/interceptors/rabbitmq-ack.interceptor';
 import { DEFAULTS } from './common/constants/defaults';
+import { buildRabbitmqUrl } from './common/config/rabbitmq-url';
 
 async function bootstrap() {
   const logger = new Logger('NestApplication');
@@ -24,7 +25,7 @@ async function bootstrap() {
     await NestFactory.createMicroservice<MicroserviceOptions>(AppModule, {
       transport: Transport.RMQ,
       options: {
-        urls: [process.env.RABBITMQ_URL || DEFAULTS.RABBITMQ_URL],
+        urls: [buildRabbitmqUrl()],
         queue: process.env.RABBITMQ_QUEUE || DEFAULTS.RABBITMQ_QUEUE,
         queueOptions: {
           durable: true,

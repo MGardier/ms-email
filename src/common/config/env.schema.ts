@@ -9,7 +9,12 @@ export const envSchema = z
     DATABASE_URL: z.url({ error: 'You must provide DATABASE_URL.' }),
 
     // RabbitMQ
-    RABBITMQ_URL: z.url({ error: 'You must provide RABBITMQ_URL.' }),
+    RABBITMQ_HOST: z.string().default('localhost'),
+    RABBITMQ_PORT: z.coerce.number().int().positive().default(5672),
+    RABBITMQ_USER: z.string({ error: 'You must provide RABBITMQ_USER.' }),
+    RABBITMQ_PASSWORD: z.string({
+      error: 'You must provide RABBITMQ_PASSWORD.',
+    }),
     RABBITMQ_QUEUE: z.string().default('email_queue'),
     RABBITMQ_PREFETCH: z.coerce.number().int().positive().default(1),
 

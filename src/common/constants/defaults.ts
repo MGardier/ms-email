@@ -1,6 +1,7 @@
 export const DEFAULTS = {
   // RabbitMQ
-  RABBITMQ_URL: 'amqp://root:root@localhost:5672',
+  RABBITMQ_HOST: 'localhost',
+  RABBITMQ_PORT: 5672,
   RABBITMQ_QUEUE: 'email_queue',
   RABBITMQ_PREFETCH: '1',
 

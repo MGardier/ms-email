@@ -1,14 +1,18 @@
 services:
   rabbitmq:
-    image: rabbitmq:3-management-alpine
+    image: rabbitmq:4.3.0-management-alpine
     restart: unless-stopped
+    profiles: ["dev"]
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:?err}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?err}
     ports:
-      - '5672:5672'
-      - '15672:15672'
+      - '5656:5672'
+      - '15656:15672'
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     healthcheck:
-      test: ['CMD', 'rabbitmq-diagnostics', 'check_port_connectivity']
+      test: ['CMD', 'rabbitmq-diagnostics', '-q', 'check_running']
       interval: 10s
       timeout: 5s
       start_period: 30s
@@ -17,6 +21,7 @@ services:
   postgres:
     image: postgres:17-alpine
     restart: unless-stopped
+    profiles: ["dev"]
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-ms_email_user}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?err}
@@ -24,7 +29,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - '5432:5432'
+      - '5454:5432'
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}']
       interval: 10s
@@ -43,7 +48,7 @@ services:
     volumes:
       - pgadmin_data:/var/lib/pgadmin
     ports:
-      - '5050:80'
+      - '5005:80'
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://localhost:80/misc/ping"]
       interval: 30s
@@ -57,8 +62,8 @@ services:
       restart: unless-stopped
       profiles: ["dev"]
       ports:
-        - '1025:1025' # SMTP
-        - '8025:8025' # Web UI
+        - '1052:1025' # SMTP
+        - '8052:8025' # Web UI
       environment:
         MP_SMTP_AUTH_ACCEPT_ANY: 1
         MP_SMTP_AUTH_ALLOW_INSECURE: 1
