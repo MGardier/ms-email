@@ -1,0 +1,23 @@
+{{#> base-template title="Invitation admin CvTools"}}
+  {{#*inline "body"}}
+    <h1 class="main-title">Bonjour {{userName}} !</h1>
+
+    <p class="main-description">
+      Vous avez été invité à créer un compte administrateur. Cliquez sur le
+      bouton ci-dessous pour finaliser la création de votre compte.
+    </p>
+
+    <a href="{{invitationLink}}" class="cta-button">
+      Créer mon compte admin
+    </a>
+
+    <div class="divider"></div>
+
+    <div class="security-info">
+      <p>
+        Ce lien expire dans 15 minutes. Si vous n'êtes pas à l'origine de cette
+        demande, ignorez cet email.
+      </p>
+    </div>
+  {{/inline}}
+{{/base-template}}
