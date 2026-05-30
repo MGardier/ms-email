@@ -9,7 +9,7 @@ import {
   IsOptional,
   IsString,
   MaxLength,
-  Validate,
+  ValidateIf,
 } from 'class-validator';
 
 export class SendEmailDto {
@@ -37,17 +37,27 @@ export class SendEmailDto {
   @MaxLength(500000, { message: 'HTML content exceeds maximum allowed size' })
   html?: string;
 
+  // Required (and non-empty) whenever a template is referenced, i.e. when
+  // templateSlug itself or versionNumber is provided. Skipped on the raw-HTML path.
+  @ValidateIf(
+    (o: SendEmailDto) =>
+      o.versionNumber !== undefined || o.templateSlug !== undefined,
+  )
+  @IsString()
+  @IsNotEmpty()
+  templateSlug?: string;
+
   @IsInt()
   @IsOptional()
-  templateVersionId?: number;
+  versionNumber?: number;
 
   @IsObject()
   @IsOptional()
   variables?: Record<string, unknown>;
 
   @IsInt()
-  @IsNotEmpty()
-  userId: number;
+  @IsOptional()
+  userId?: number;
 
   @IsString()
   @IsNotEmpty()

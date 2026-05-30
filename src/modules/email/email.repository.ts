@@ -19,13 +19,18 @@ export class EmailRepository {
 
   async create(
     dto: SendEmailDto,
+    templateVersionId: number | null,
     selectColumns?: (keyof Email)[],
   ): Promise<Partial<Email>> {
+    // templateSlug/versionNumber are resolution inputs, not Email columns
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { templateSlug, versionNumber, ...data } = dto;
     try {
       return await this.prismaService.email.create({
         select: this.getSelectColumns(selectColumns),
         data: {
-          ...dto,
+          ...data,
+          templateVersionId,
           variables: dto.variables as Prisma.InputJsonValue,
           isApproved: dto.isApproved ?? true,
           metadata: dto.metadata as Prisma.InputJsonValue,

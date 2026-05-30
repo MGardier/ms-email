@@ -42,7 +42,7 @@ model Email {
   html                String?                 @db.Text
   templateVersionId   Int?                    @map("template_version_id")
   variables           Json?                   @db.JsonB
-  userId              Int                     @map("user_id")
+  userId              Int?                    @map("user_id")
   origin              String                  @db.VarChar(255)
   isApproved          Boolean                 @default(true) @map("is_approved")
   metadata            Json?                   @db.JsonB
@@ -99,6 +99,7 @@ model EmailTemplateVersion {
   template            EmailTemplate           @relation(fields: [templateId], references: [id], onDelete: Cascade)
   emails              Email[]
 
+  @@unique([templateId, versionNumber])
   @@map("email_template_version")
 }
 

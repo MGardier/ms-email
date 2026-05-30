@@ -200,11 +200,11 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const reason = context.reason as string | undefined;
 
     if (reason?.includes('both')) {
-      return `Invalid payload: you provided both 'html' AND 'templateVersionId'. Choose one or the other.`;
+      return `Invalid payload: you provided both 'html' AND 'templateSlug'. Choose one or the other.`;
     }
 
     if (reason?.includes('either')) {
-      return `Invalid payload: you must provide either 'html' (raw content) or 'templateVersionId' (template reference).`;
+      return `Invalid payload: you must provide either 'html' (raw content) or 'templateSlug' (template reference).`;
     }
 
     return `Invalid payload: ${reason ?? 'payload format does not match expected schema'}.`;

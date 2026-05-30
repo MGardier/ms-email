@@ -3,7 +3,6 @@ import { ConfigService } from '@nestjs/config';
 import { DEFAULTS } from 'src/common/constants/defaults';
 import { IRetryConfig, IRetryResult } from 'src/modules/email/types';
 
-
 @Injectable()
 export class RetryService {
   private readonly logger = new Logger(RetryService.name);
@@ -25,7 +24,7 @@ export class RetryService {
       ),
       maxDelayMs: DEFAULTS.EMAIL_RETRY_MAX_DELAY_MS,
     };
-  } 
+  }
 
   async executeWithRetry<T>(
     operation: () => Promise<T>,
@@ -40,9 +39,7 @@ export class RetryService {
         );
         const result = await operation();
 
-    
-          this.logger.log(`${context}: Succeeded on attempt ${attempt}`);
-      
+        this.logger.log(`${context}: Succeeded on attempt ${attempt}`);
 
         return {
           success: true,

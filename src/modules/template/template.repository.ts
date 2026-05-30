@@ -7,26 +7,18 @@ import { PrismaService } from 'prisma/prisma.service';
 export class TemplateRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async findVersionById(
-    id: number,
-    includeTemplate = false,
-  ): Promise<EmailTemplateVersion | null> {
-    return await this.prismaService.emailTemplateVersion.findUnique({
-      where: { id },
-      include: {
-        template: includeTemplate,
-      },
-    });
-  }
-
   async findVersionBySlug(
     slug: string,
+    versionNumber?: number,
     includeTemplate = false,
   ): Promise<EmailTemplateVersion | null> {
     return await this.prismaService.emailTemplateVersion.findFirst({
       where: {
         template: { slug },
+        // A disabled version is never usable, even when a specific
+        // versionNumber is requested.
         isEnabled: true,
+        ...(versionNumber !== undefined ? { versionNumber } : {}),
       },
       include: {
         template: includeTemplate,

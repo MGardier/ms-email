@@ -29,7 +29,10 @@ export const envSchema = z
     EMAIL_PROVIDER_SECONDARY: ProductionProviderEnum,
 
     // Test Mode
-    EMAIL_USE_TEST_PROVIDER: z.enum(['true', 'false', '1', '0']).catch('false') .transform((val) => val === 'true' || val === '1'),
+    EMAIL_USE_TEST_PROVIDER: z
+      .enum(['true', 'false', '1', '0'])
+      .catch('false')
+      .transform((val) => val === 'true' || val === '1'),
     EMAIL_TEST_PROVIDER: TestProviderEnum.default('mailpit'),
 
     // Retry Configuration

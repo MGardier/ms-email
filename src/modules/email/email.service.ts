@@ -6,7 +6,11 @@ import { EmailRepository } from './email.repository';
 import { SendEmailDto } from './dto/send-email.dto';
 import { TemplateService } from 'src/modules/template/template.service';
 import { ProviderOrchestratorService } from './providers/services/provider-orchestrator.service';
-import { IEmailSendResult,IEmailProviderOptions,  IOrchestratorResult, } from './types';
+import {
+  IEmailSendResult,
+  IEmailProviderOptions,
+  IOrchestratorResult,
+} from './types';
 
 import { ITemplateVersion } from 'src/modules/template/types';
 import { RpcException } from '@nestjs/microservices';
@@ -31,8 +35,15 @@ export class EmailService {
     );
 
     // 1. Create email BEFORE sending (for tracability)
-    const email = await this.emailRepository.create(payload, ['id']);
-    const emailId = email.id as string;
+    // Only persist the resolved templateVersionId when a template was requested
+    // (raw HTML uses the internal 'raw' template but stores no reference).
+    const templateVersionId = payload.templateSlug ? templateVersion.id : null;
+    const email = await this.emailRepository.create(
+      payload,
+      templateVersionId,
+      ['id'],
+    );
+    const emailId = email.id;
 
     // 2. Send email with retry and fallback
     const orchestratorResult = await this.send({
@@ -78,26 +89,26 @@ export class EmailService {
     payload: SendEmailDto,
   ): Promise<ITemplateVersion> {
     const hasHtml = !!payload.html;
-    const hasTemplateId = !!payload.templateVersionId;
+    const hasTemplate = !!payload.templateSlug;
 
-    if (hasHtml && hasTemplateId) {
+    if (hasHtml && hasTemplate) {
       throw new RpcException({
         code: ErrorCode.INVALID_PAYLOAD,
         context: {
           operation: 'email-service-resolveTemplate',
-          reason: 'Cannot provide both html and templateVersionId',
+          reason: 'Cannot provide both html and templateSlug',
           recipients: payload.recipients,
           subject: payload.subject,
         },
       });
     }
 
-    if (!hasHtml && !hasTemplateId) {
+    if (!hasHtml && !hasTemplate) {
       throw new RpcException({
         code: ErrorCode.INVALID_PAYLOAD,
         context: {
           operation: 'email-service-resolveTemplate',
-          reason: 'Must provide either html or templateVersionId',
+          reason: 'Must provide either html or templateSlug',
           recipients: payload.recipients,
           subject: payload.subject,
         },
@@ -108,8 +119,9 @@ export class EmailService {
       return this.templateService.getTemplateVersionBySlug('raw');
     }
 
-    return this.templateService.getTemplateVersionById(
-      payload.templateVersionId as number,
+    return this.templateService.getTemplateVersionBySlug(
+      payload.templateSlug,
+      payload.versionNumber,
     );
   }
 

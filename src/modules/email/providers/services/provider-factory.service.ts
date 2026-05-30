@@ -36,18 +36,17 @@ export class ProviderFactoryService {
       [PRODUCTION_PROVIDERS.RESEND, this.resendProvider],
     ]);
 
-    // Test providers 
+    // Test providers
     this.testProviders = new Map<TestProviderType, IEmailProvider>([
       [TEST_PROVIDERS.MAILPIT, this.mailpitProvider],
     ]);
   }
 
-
   /** PRIMARY PROVIDER */
 
   getPrimaryProviderName(): ProductionProviderType {
     return this.configService.getOrThrow<ProductionProviderType>(
-      'EMAIL_PROVIDER_PRIMARY'
+      'EMAIL_PROVIDER_PRIMARY',
     );
   }
 
@@ -57,7 +56,7 @@ export class ProviderFactoryService {
   }
 
   /** SECONDARY PROVIDER */
-  
+
   getSecondaryProviderName(): ProductionProviderType {
     return this.configService.getOrThrow<ProductionProviderType>(
       'EMAIL_PROVIDER_SECONDARY',

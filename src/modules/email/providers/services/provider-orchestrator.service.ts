@@ -5,11 +5,11 @@ import { ErrorCode } from 'src/common/enums/error-codes.enum';
 import {
   IEmailProvider,
   IEmailProviderOptions,
-  IOrchestratorResult, IProviderAttemptResult
+  IOrchestratorResult,
+  IProviderAttemptResult,
 } from 'src/modules/email/types';
 import { ProviderFactoryService } from './provider-factory.service';
 import { RetryService } from './retry.service';
-
 
 @Injectable()
 export class ProviderOrchestratorService {
@@ -108,16 +108,13 @@ export class ProviderOrchestratorService {
     providerName: string,
     options: IEmailProviderOptions,
   ): Promise<IProviderAttemptResult> {
-    const retryResult = await this.retryService.executeWithRetry(
-      async () => {
-        const result = await provider.sendMail(options);
-        if (!result.success) {
-          throw new Error(result.error || 'Unknown provider error');
-        }
-        return result;
-      },
-      `Provider[${providerName}]`,
-    );
+    const retryResult = await this.retryService.executeWithRetry(async () => {
+      const result = await provider.sendMail(options);
+      if (!result.success) {
+        throw new Error(result.error || 'Unknown provider error');
+      }
+      return result;
+    }, `Provider[${providerName}]`);
 
     if (retryResult.success && retryResult.result) {
       return {

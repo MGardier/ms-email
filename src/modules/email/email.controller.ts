@@ -27,10 +27,11 @@ export class EmailController {
     try {
       await this.processSendEmail(data, 'send_email_async');
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
 
       this.logger.error(
-        `[FAILED] send_email_async | recipients: ${data.recipients.join(', ')} | userId: ${data.userId} | origin: ${data.origin} | error: ${errorMessage}`,
+        `[FAILED] send_email_async | recipients: ${data.recipients.join(', ')} | userId: ${data.userId ?? 'N/A'} | origin: ${data.origin} | error: ${errorMessage}`,
       );
     }
   }
@@ -40,7 +41,7 @@ export class EmailController {
     pattern: string,
   ): Promise<IEmailSendResult> {
     this.logger.log(
-      `[RECEIVED] ${pattern} | recipients: ${data.recipients.join(', ')} | userId: ${data.userId} | origin: ${data.origin}`,
+      `[RECEIVED] ${pattern} | recipients: ${data.recipients.join(', ')} | userId: ${data.userId ?? 'N/A'} | origin: ${data.origin}`,
     );
 
     const result = await this.emailService.sendMail(data);

@@ -46,28 +46,13 @@ export class TemplateService {
     return this.compileTemplate(templatePath, payload.variables || {});
   }
 
-  async getTemplateVersionById(id: number): Promise<ITemplateVersion> {
-    const templateVersion = await this.templateRepository.findVersionById(
-      id,
-      true,
-    );
-
-    if (!templateVersion) {
-      throw new RpcException({
-        code: ErrorCode.TEMPLATE_NOT_FOUND,
-        context: {
-          operation: 'getTemplateVersionById',
-          templateVersionId: id,
-        },
-      });
-    }
-
-    return templateVersion as ITemplateVersion;
-  }
-
-  async getTemplateVersionBySlug(slug: string): Promise<ITemplateVersion> {
+  async getTemplateVersionBySlug(
+    slug: string,
+    versionNumber?: number,
+  ): Promise<ITemplateVersion> {
     const templateVersion = await this.templateRepository.findVersionBySlug(
       slug,
+      versionNumber,
       true,
     );
 
@@ -77,6 +62,7 @@ export class TemplateService {
         context: {
           operation: 'getTemplateVersionBySlug',
           slug,
+          versionNumber,
         },
       });
     }

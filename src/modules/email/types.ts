@@ -1,5 +1,4 @@
-
-import { EmailProviderType } from "./providers/provider.constants";
+import { EmailProviderType } from './providers/provider.constants';
 
 export interface IEmailSendResult {
   id: string;
@@ -34,7 +33,6 @@ export interface IEmailProvider {
   healthCheck(): Promise<boolean>;
 }
 
-
 export interface IMailjetMessageResponse {
   Messages: Array<{
     To: Array<{ MessageID: number }>;
@@ -56,7 +54,6 @@ export interface IProviderAttemptResult {
   attempts: number;
   errors: string[];
 }
-
 
 /** RETRY SERVICE */
 
